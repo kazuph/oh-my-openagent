@@ -20,9 +20,13 @@ import { log } from "../../shared/logger"
  */
 const DEFAULT_CONFIG: ScannerConfig = {
   hookFiles: [".claude/settings.json", ".claude/settings.local.json"],
-  mcpFiles: [".mcp.json"],
-  commandFiles: [".opencode/command/*.md", ".claude/commands/*.md"],
-  skillDirs: [".claude/skills", ".opencode/skills", ".agents/skills"],
+  mcpFiles: [".mcp.json", ".claude/.mcp.json"],
+  commandFiles: [
+    ".opencode/command/*.md",
+    ".opencode/commands/*.md",
+    ".claude/commands/*.md",
+  ],
+  skillDirs: [".claude/skills", ".opencode/skills", ".opencode/skill", ".agents/skills"],
   openclawConfigs: [".opencode/config.json", ".opencode/oh-my-opencode.jsonc"],
 }
 
@@ -88,7 +92,45 @@ function findEmbeddedCommands(filePath: string): string[] {
 }
 
 /**
+ * HookAction の型 (command or http)
+ */
+interface RawHookAction {
+  type?: "command" | "http"
+  command?: string
+  url?: string
+}
+
+/**
+ * HookMatcher の型 (matcher + hooks 配列)
+ */
+interface RawHookMatcher {
+  matcher?: string
+  pattern?: string
+  hooks?: RawHookAction[]
+}
+
+/**
+ * 実際の .claude/settings*.json の hooks 形式
+ * { hooks: { PreToolUse: [...], PostToolUse: [...], ... } }
+ */
+interface RawClaudeHooksConfig {
+  PreToolUse?: RawHookMatcher[]
+  PostToolUse?: RawHookMatcher[]
+  UserPromptSubmit?: RawHookMatcher[]
+  Stop?: RawHookMatcher[]
+  PreCompact?: RawHookMatcher[]
+}
+
+const HOOK_EVENT_TYPES: (keyof RawClaudeHooksConfig)[] = [
+  "PreToolUse", "PostToolUse", "UserPromptSubmit", "Stop", "PreCompact",
+]
+
+/**
  * hooks定義を検出
+ *
+ * 実際の .claude/settings.json の形式は:
+ * { "hooks": { "PreToolUse": [{ "matcher": "...", "hooks": [{ "type": "command", "command": "..." }] }] } }
+ * 旧形式 { "hooks": [{ "event": "...", "command": "..." }] } にもフォールバック対応
  */
 function scanHooks(projectRoot: string, config: ScannerConfig): ExecutionSurface[] {
   const surfaces: ExecutionSurface[] = []
@@ -97,16 +139,45 @@ function scanHooks(projectRoot: string, config: ScannerConfig): ExecutionSurface
     const filePath = join(projectRoot, file)
     if (!existsSync(filePath)) continue
 
-    const json = safeParseJson<{ hooks?: Array<{ event: string; command?: string; shell?: boolean }> }>(filePath)
-    if (!json?.hooks?.length) continue
+    const json = safeParseJson<{ hooks?: RawClaudeHooksConfig | Array<{ event: string; command?: string; shell?: boolean }> }>(filePath)
+    if (!json?.hooks) continue
 
-    for (const hook of json.hooks) {
-      if (hook.command || hook.shell) {
-        surfaces.push({
-          type: "hook",
-          filePath: resolve(filePath),
-          command: hook.command,
-        })
+    if (Array.isArray(json.hooks)) {
+      // 旧形式フォールバック: [{ event, command, shell }]
+      for (const hook of json.hooks) {
+        if (hook.command || hook.shell) {
+          surfaces.push({
+            type: "hook",
+            filePath: resolve(filePath),
+            command: hook.command,
+          })
+        }
+      }
+    } else {
+      // 実際の形式: { PreToolUse: [...], PostToolUse: [...], ... }
+      const hooksConfig = json.hooks as RawClaudeHooksConfig
+      for (const eventType of HOOK_EVENT_TYPES) {
+        const matchers = hooksConfig[eventType]
+        if (!matchers || !Array.isArray(matchers)) continue
+
+        for (const matcher of matchers) {
+          if (!matcher.hooks || !Array.isArray(matcher.hooks)) continue
+          for (const action of matcher.hooks) {
+            if (action.type === "command" && action.command) {
+              surfaces.push({
+                type: "hook",
+                filePath: resolve(filePath),
+                command: action.command,
+              })
+            } else if (action.type === "http" && action.url) {
+              surfaces.push({
+                type: "hook",
+                filePath: resolve(filePath),
+                command: `[http] ${action.url}`,
+              })
+            }
+          }
+        }
       }
     }
   }
@@ -232,24 +303,26 @@ function scanLocalSkills(projectRoot: string, config: ScannerConfig): ExecutionS
         const hasSkillMd = existsSync(skillMdPath)
         const hasMcpJson = existsSync(mcpJsonPath)
 
-        if (hasSkillMd || hasMcpJson) {
-          const commands: string[] = []
-          if (hasSkillMd) {
-            const cmds = findEmbeddedCommands(skillMdPath)
-            commands.push(...cmds)
-          }
-
-          if (hasMcpJson) {
-            const mcpJson = safeParseJson<{ command?: string; args?: string[] }>(mcpJsonPath)
-            if (mcpJson?.command) {
-              commands.push(`${mcpJson.command} ${(mcpJson.args ?? []).join(" ")}`)
-            }
-          }
-
+        // SKILL.md と mcp.json をそれぞれ個別の surface として追加
+        // (hash.ts がファイル単位でハッシュするため、ディレクトリパスではなくファイルパスを使う)
+        if (hasSkillMd) {
+          const cmds = findEmbeddedCommands(skillMdPath)
           surfaces.push({
             type: "local-skill",
-            filePath: resolve(skillDir),
-            command: commands.length > 0 ? commands.join("; ") : "skill definition",
+            filePath: resolve(skillMdPath),
+            command: cmds.length > 0 ? cmds.join("; ") : "skill definition (SKILL.md)",
+          })
+        }
+
+        if (hasMcpJson) {
+          const mcpJson = safeParseJson<{ command?: string; args?: string[] }>(mcpJsonPath)
+          const cmd = mcpJson?.command
+            ? `${mcpJson.command} ${(mcpJson.args ?? []).join(" ")}`
+            : "skill MCP definition"
+          surfaces.push({
+            type: "local-skill",
+            filePath: resolve(mcpJsonPath),
+            command: cmd,
           })
         }
       }
@@ -299,10 +372,11 @@ export function hasExecutionSurfaces(projectRoot: string, config?: ScannerConfig
   for (const pattern of cfg.commandFiles) {
     const parts = pattern.split("/")
     const dirPath = parts.slice(0, -1).join("/")
+    const filePattern = parts[parts.length - 1]!
     const fullDir = join(projectRoot, dirPath)
 
     try {
-      const files = simpleGlob(fullDir, pattern)
+      const files = simpleGlob(fullDir, filePattern)
       if (files.length > 0) {
         for (const file of files) {
           if (findEmbeddedCommands(file).length > 0) return true

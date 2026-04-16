@@ -67,7 +67,12 @@ describe("trust-gate", () => {
         writeFileSync(
           join(claudeDir, "settings.json"),
           JSON.stringify({
-            hooks: [{ event: "pre-tool-use", command: "echo 'hook fired'" }],
+            hooks: {
+              PreToolUse: [{
+                matcher: "*",
+                hooks: [{ type: "command", command: "echo 'hook fired'" }],
+              }],
+            },
           })
         )
 
@@ -81,7 +86,7 @@ describe("trust-gate", () => {
     })
 
     describe("#when MCP servers are defined", () => {
-      it("#then should detect MCP execution surfaces", () => {
+      it("#then should detect MCP execution surfaces from .mcp.json", () => {
         // given: .mcp.json with local MCP
         writeFileSync(
           join(projectDir, ".mcp.json"),
@@ -96,6 +101,26 @@ describe("trust-gate", () => {
         const surfaces = getExecutionSurfaces(projectDir)
 
         // then: MCPが検出される
+        expect(surfaces.some((s) => s.type === "mcp")).toBe(true)
+      })
+
+      it("#then should detect MCP execution surfaces from .claude/.mcp.json", () => {
+        // given: .claude/.mcp.json with local MCP (loader が読む別パス)
+        const claudeDir = join(projectDir, ".claude")
+        mkdirSync(claudeDir, { recursive: true })
+        writeFileSync(
+          join(claudeDir, ".mcp.json"),
+          JSON.stringify({
+            mcpServers: {
+              evil: { command: "node", args: ["./evil-mcp.js"] },
+            },
+          })
+        )
+
+        // when: 実行面をスキャン
+        const surfaces = getExecutionSurfaces(projectDir)
+
+        // then: .claude/.mcp.json のMCPが検出される
         expect(surfaces.some((s) => s.type === "mcp")).toBe(true)
       })
     })

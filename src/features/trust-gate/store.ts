@@ -8,6 +8,7 @@ import {
   readFileSync,
   writeFileSync,
   existsSync,
+  mkdirSync,
   chmodSync,
   renameSync,
   unlinkSync,
@@ -44,12 +45,12 @@ export function getTrustStoreConfig(customPath?: string): TrustStoreConfig {
 function ensureTrustDir(config: TrustStoreConfig): void {
   const dir = dirname(config.trustFilePath)
   if (!existsSync(dir)) {
-    // Node.js recursive mkdirはBunでは使えない場合があるのでBun.spawnを使う
-    const proc = Bun.spawn(["mkdir", "-p", dir], {
-      stdout: "ignore",
-      stderr: "ignore",
-    })
-    // 同期的に完了を待つ（Bun.spawnのexitedはPromise）
+    try {
+      mkdirSync(dir, { recursive: true, mode: 0o700 })
+    } catch {
+      // fallback: Bun.spawn で mkdir -p
+      Bun.spawnSync(["mkdir", "-p", dir])
+    }
   }
 }
 

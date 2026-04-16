@@ -147,6 +147,13 @@ export async function evaluateProjectTrust(
 }
 
 /**
+ * shouldGateProject のキャッシュ (TTL ベース)
+ * hot path で毎回 full scan + hash するのを防ぐ
+ */
+const gateCache = new Map<string, { result: boolean; cachedAt: number }>()
+const GATE_CACHE_TTL_MS = 10_000 // 10秒
+
+/**
  * 実行面が存在し、かつ承認が必要かチェック（高速判定）
  */
 export function shouldGateProject(projectRoot: string, storeConfig?: TrustStoreConfig): boolean {
@@ -157,14 +164,22 @@ export function shouldGateProject(projectRoot: string, storeConfig?: TrustStoreC
     return false
   }
 
+  // キャッシュチェック
+  const cached = gateCache.get(absPath)
+  if (cached && Date.now() - cached.cachedAt < GATE_CACHE_TTL_MS) {
+    return cached.result
+  }
+
   // 実行面がない場合はgate不要
   if (!hasExecutionSurfaces(absPath)) {
+    gateCache.set(absPath, { result: false, cachedAt: Date.now() })
     return false
   }
 
   // 実行面あり - hash計算してチェック
   const surfaces = scanExecutionSurfaces(absPath)
   if (surfaces.length === 0) {
+    gateCache.set(absPath, { result: false, cachedAt: Date.now() })
     return false
   }
 
@@ -172,7 +187,9 @@ export function shouldGateProject(projectRoot: string, storeConfig?: TrustStoreC
   const currentHash = computeCombinedHash(hashedSurfaces)
   const { trusted } = isProjectTrusted(absPath, currentHash, storeConfig)
 
-  return !trusted
+  const result = !trusted
+  gateCache.set(absPath, { result, cachedAt: Date.now() })
+  return result
 }
 
 /**

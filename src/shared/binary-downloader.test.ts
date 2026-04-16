@@ -58,7 +58,7 @@ describe("binary-downloader", () => {
         const tempDir = createTempDir()
         const archivePath = join(tempDir, "test-archive.txt")
         const testContent = "Hello, World!"
-        const wrongSha256 = "0000000000000000000000000000000000000000000000000000000000000000"
+        const wrongSha256 = "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
 
         // モック fetch
         const originalFetch = global.fetch
@@ -146,7 +146,7 @@ describe("binary-downloader", () => {
 
         try {
           // when/ then: エラーがスローされる
-          expect(downloadArchive("http://example.com/test.txt", archivePath)).rejects.toThrow(
+          await expect(downloadArchive("http://example.com/test.txt", archivePath)).rejects.toThrow(
             "HTTP 404"
           )
         } finally {

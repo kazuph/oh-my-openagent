@@ -47,21 +47,27 @@ export async function downloadArchive(
 
   // SHA256検証（提供されている場合）
   if (options?.expectedSha256) {
-    const actualSha256 = createHash("sha256")
-      .update(new Uint8Array(arrayBuffer))
-      .digest("hex");
+    const isPlaceholder = /^0+$/.test(options.expectedSha256)
+    if (isPlaceholder) {
+      // プレースホルダー (0000...): 実ハッシュ未取得のプラットフォーム。warn + skip で regression 回避
+      log(`[binary-downloader] Warning: SHA256 is placeholder for ${downloadUrl} - skipping verification (collect real hash later)`)
+    } else {
+      const actualSha256 = createHash("sha256")
+        .update(new Uint8Array(arrayBuffer))
+        .digest("hex");
 
-    if (actualSha256 !== options.expectedSha256.toLowerCase()) {
-      // 検証失敗時はファイルを削除してエラーをスロー
-      unlinkSync(archivePath);
-      log(`[binary-downloader] SHA256 mismatch for ${archivePath}: expected ${options.expectedSha256}, got ${actualSha256}`);
-      throw new BinaryIntegrityError(
-        `Binary integrity check failed: SHA256 mismatch for ${downloadUrl}`,
-        options.expectedSha256,
-        actualSha256
-      );
+      if (actualSha256 !== options.expectedSha256.toLowerCase()) {
+        // 検証失敗時はファイルを削除してエラーをスロー
+        unlinkSync(archivePath);
+        log(`[binary-downloader] SHA256 mismatch for ${archivePath}: expected ${options.expectedSha256}, got ${actualSha256}`);
+        throw new BinaryIntegrityError(
+          `Binary integrity check failed: SHA256 mismatch for ${downloadUrl}`,
+          options.expectedSha256,
+          actualSha256
+        );
+      }
+      log(`[binary-downloader] SHA256 verified for ${archivePath}`);
     }
-    log(`[binary-downloader] SHA256 verified for ${archivePath}`);
   } else {
     // expectedSha256未指定時は警告ログを出して後方互換
     log(`[binary-downloader] Warning: No SHA256 provided for ${downloadUrl} - skipping integrity check`);

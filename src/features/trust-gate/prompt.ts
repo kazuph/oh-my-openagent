@@ -121,20 +121,41 @@ export async function showInteractivePrompt(
 ): Promise<InteractiveApprovalResult> {
   const message = createPromptMessage(decision.surfaces, projectPath)
 
-  // 標準入力から読み取り
+  // 標準入力から読み取り (TTY での Enter 対応)
   process.stdout.write(message)
 
   const response = await new Promise<string>((resolve) => {
-    const chunks: Buffer[] = []
-    process.stdin.on("data", (chunk) => {
-      chunks.push(Buffer.from(chunk))
-    })
+    let resolved = false
+    const cleanup = () => {
+      if (resolved) return
+      resolved = true
+      process.stdin.removeListener("data", onData)
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode?.(false)
+      }
+      process.stdin.pause()
+    }
+
+    const onData = (chunk: Buffer) => {
+      const input = chunk.toString("utf-8").trim().toLowerCase()
+      if (input.length > 0) {
+        cleanup()
+        resolve(input)
+      }
+    }
+
+    process.stdin.resume()
+    process.stdin.on("data", onData)
     process.stdin.on("end", () => {
-      resolve(Buffer.concat(chunks).toString("utf-8").trim().toLowerCase())
+      cleanup()
+      resolve("")
     })
 
     // タイムアウト（30秒）
-    setTimeout(() => resolve(""), 30000)
+    setTimeout(() => {
+      cleanup()
+      resolve("")
+    }, 30000)
   })
 
   if (response === "y" || response === "yes") {
