@@ -357,8 +357,9 @@ describe("loadPluginConfig", () => {
     // then
     expect(existsSync(legacyConfigPath)).toBe(false)
     expect(existsSync(backupConfigPath)).toBe(true)
-    expect(readFileSync(canonicalConfigPath, "utf-8")).toContain('"openai/gpt-5.4"')
-    expect(reloadedConfig.agents?.oracle?.model).toBe("openai/gpt-5.4")
+    // openai/gpt-5.4 auto-migrates to opencode/gpt-5.4 after subscription-only purge
+    expect(readFileSync(canonicalConfigPath, "utf-8")).toContain('"opencode/gpt-5.4"')
+    expect(reloadedConfig.agents?.oracle?.model).toBe("opencode/gpt-5.4")
   })
 
   it("should still load config from legacy path when migration fails", async () => {
@@ -394,8 +395,8 @@ describe("loadPluginConfig", () => {
       }
     }
 
-    // then - should still load the config from legacy path
-    expect(config.agents?.oracle?.model).toBe("openai/gpt-5.4")
+    // then - should still load the config from legacy path (migration in-memory applied)
+    expect(config.agents?.oracle?.model).toBe("opencode/gpt-5.4")
   })
 
   it("should load migrated legacy project config on the first load", async () => {
@@ -421,7 +422,8 @@ describe("loadPluginConfig", () => {
     // then
     expect(existsSync(legacyConfigPath)).toBe(false)
     expect(existsSync(canonicalConfigPath)).toBe(true)
-    expect(config.agents?.oracle?.model).toBe("openai/gpt-5.4")
+    // openai/gpt-5.4 auto-migrates to opencode/gpt-5.4 on first load
+    expect(config.agents?.oracle?.model).toBe("opencode/gpt-5.4")
   })
 
   it("should preserve explicit user git_master settings when project config omits git_master", async () => {

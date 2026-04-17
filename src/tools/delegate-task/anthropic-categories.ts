@@ -1,4 +1,5 @@
 import type { BuiltinCategoryDefinition } from "./builtin-category-definition"
+import { CLI_ESCALATION_PROMPT_APPEND } from "./cli-escalation"
 
 const UNSPECIFIED_LOW_CATEGORY_PROMPT_APPEND = `<Category_Context>
 You are working on tasks that don't fit specific categories but require moderate effort.
@@ -41,14 +42,14 @@ If task is unclassifiable but moderate-effort, use unspecified-low instead.
 export const ANTHROPIC_CATEGORIES: BuiltinCategoryDefinition[] = [
   {
     name: "unspecified-low",
-    config: { model: "anthropic/claude-sonnet-4-6" },
+    config: { model: "github-copilot/claude-sonnet-4-6" },
     description: "Tasks that don't fit other categories, low effort required",
-    promptAppend: UNSPECIFIED_LOW_CATEGORY_PROMPT_APPEND,
+    promptAppend: `${UNSPECIFIED_LOW_CATEGORY_PROMPT_APPEND}\n\n${CLI_ESCALATION_PROMPT_APPEND}`,
   },
   {
     name: "unspecified-high",
-    config: { model: "anthropic/claude-opus-4-6", variant: "max" },
+    config: { model: "github-copilot/claude-opus-4-6", variant: "max" },
     description: "Tasks that don't fit other categories, high effort required",
-    promptAppend: UNSPECIFIED_HIGH_CATEGORY_PROMPT_APPEND,
+    promptAppend: `${UNSPECIFIED_HIGH_CATEGORY_PROMPT_APPEND}\n\n${CLI_ESCALATION_PROMPT_APPEND}`,
   },
 ]

@@ -114,10 +114,11 @@ describe("model fallback hook", () => {
       output,
     )
 
-    //#then
+    //#then - first sisyphus fallback entry routes through github-copilot
+    // (anthropic is denied after the 2026-04-17 subscription-only purge)
     expect(output.message["model"]).toEqual({
-      providerID: "anthropic",
-      modelID: "claude-opus-4-6",
+      providerID: "github-copilot",
+      modelID: "claude-opus-4.6",
     })
   })
 
@@ -146,26 +147,26 @@ describe("model fallback hook", () => {
     //#when - first retry is applied
     await hook["chat.message"]?.({ sessionID }, firstOutput)
 
-    //#then
+    //#then - first entry = github-copilot/claude-opus-4-6 max
     expect(firstOutput.message["model"]).toEqual({
-      providerID: "anthropic",
-      modelID: "claude-opus-4-6",
+      providerID: "github-copilot",
+      modelID: "claude-opus-4.6",
     })
 
     //#when - second error re-arms fallback and should advance to next entry
     expect(
-      setPendingModelFallback(sessionID, "Sisyphus - Ultraworker", "anthropic", "claude-opus-4-6"),
+      setPendingModelFallback(sessionID, "Sisyphus - Ultraworker", "github-copilot", "claude-opus-4.6"),
     ).toBe(true)
 
     const secondOutput = {
       message: {
-        model: { providerID: "anthropic", modelID: "claude-opus-4-6" },
+        model: { providerID: "github-copilot", modelID: "claude-opus-4.6" },
       },
       parts: [{ type: "text", text: "continue" }],
     }
     await hook["chat.message"]?.({ sessionID }, secondOutput)
 
-    //#then - chain should progress to entry[1], not repeat entry[0]
+    //#then - chain should progress to entry[1]: opencode-go/kimi-k2.5
     expect(secondOutput.message["model"]).toEqual({
       providerID: "opencode-go",
       modelID: "kimi-k2.5",

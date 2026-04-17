@@ -748,9 +748,9 @@ describe("Prometheus category config resolution", () => {
     // when
     const config = resolveCategoryConfig(categoryName)
 
-    // then
+    // then - subscription-only routing (opencode) post 2026-04-17 purge
     expect(config).toBeDefined()
-    expect(config?.model).toBe("openai/gpt-5.4")
+    expect(config?.model).toBe("opencode/gpt-5.4")
     expect(config?.variant).toBe("xhigh")
   })
 
@@ -761,9 +761,9 @@ describe("Prometheus category config resolution", () => {
     // when
     const config = resolveCategoryConfig(categoryName)
 
-    // then
+    // then - subscription-only routing (github-copilot)
     expect(config).toBeDefined()
-    expect(config?.model).toBe("google/gemini-3.1-pro")
+    expect(config?.model).toBe("github-copilot/gemini-3.1-pro")
   })
 
   test("user categories override default categories", () => {
@@ -808,9 +808,9 @@ describe("Prometheus category config resolution", () => {
     // when
     const config = resolveCategoryConfig(categoryName, userCategories)
 
-    // then - falls back to DEFAULT_CATEGORIES
+    // then - falls back to DEFAULT_CATEGORIES (opencode/gpt-5.4 for ultrabrain)
     expect(config).toBeDefined()
-    expect(config?.model).toBe("openai/gpt-5.4")
+    expect(config?.model).toBe("opencode/gpt-5.4")
     expect(config?.variant).toBe("xhigh")
   })
 

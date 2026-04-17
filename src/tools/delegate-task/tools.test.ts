@@ -31,8 +31,8 @@ const TEST_AVAILABLE_MODELS = new Set([
   "anthropic/claude-opus-4-6",
   "anthropic/claude-sonnet-4-6",
   "anthropic/claude-haiku-4-5",
-  "google/gemini-3.1-pro",
-  "google/gemini-3-flash",
+  "github-copilot/gemini-3.1-pro",
+  "github-copilot/gemini-3-flash",
   "openai/gpt-5.4",
   "openai/gpt-5.3-codex",
 ])
@@ -88,7 +88,7 @@ describe("sisyphus-task", () => {
 
       // when / #then
       expect(category).toBeDefined()
-      expect(category.model).toBe("google/gemini-3.1-pro")
+      expect(category.model).toBe("github-copilot/gemini-3.1-pro")
       expect(category.variant).toBe("high")
     })
 
@@ -98,7 +98,7 @@ describe("sisyphus-task", () => {
 
       // when / #then
       expect(category).toBeDefined()
-      expect(category.model).toBe("openai/gpt-5.4")
+      expect(category.model).toBe("opencode/gpt-5.4")
       expect(category.variant).toBe("xhigh")
     })
 
@@ -108,7 +108,7 @@ describe("sisyphus-task", () => {
 
       // when / #then
       expect(category).toBeDefined()
-      expect(category.model).toBe("openai/gpt-5.4")
+      expect(category.model).toBe("opencode/gpt-5.4")
       expect(category.variant).toBe("medium")
     })
 
@@ -118,7 +118,7 @@ describe("sisyphus-task", () => {
 
       // when / #then
       expect(category).toBeDefined()
-      expect(category.model).toBe("anthropic/claude-opus-4-6")
+      expect(category.model).toBe("github-copilot/claude-opus-4-6")
       expect(category.variant).toBe("max")
     })
   })
@@ -833,7 +833,7 @@ describe("sisyphus-task", () => {
 
       // then
       expect(result).not.toBeNull()
-      expect(result!.config.model).toBe("google/gemini-3.1-pro")
+      expect(result!.config.model).toBe("github-copilot/gemini-3.1-pro")
       expect(result!.promptAppend).toContain("VISUAL/UI")
     })
 
@@ -857,7 +857,7 @@ describe("sisyphus-task", () => {
       const categoryName = "visual-engineering"
       const userCategories = {
         "visual-engineering": {
-          model: "google/gemini-3.1-pro",
+          model: "github-copilot/gemini-3.1-pro",
           prompt_append: "Custom instructions here",
         },
       }
@@ -897,7 +897,7 @@ describe("sisyphus-task", () => {
       const categoryName = "visual-engineering"
       const userCategories = {
         "visual-engineering": {
-          model: "google/gemini-3.1-pro",
+          model: "github-copilot/gemini-3.1-pro",
           temperature: 0.3,
         },
       }
@@ -920,7 +920,7 @@ describe("sisyphus-task", () => {
 
       // then - category's built-in model wins over inheritedModel
       expect(result).not.toBeNull()
-      expect(result!.config.model).toBe("google/gemini-3.1-pro")
+      expect(result!.config.model).toBe("github-copilot/gemini-3.1-pro")
     })
 
     test("systemDefaultModel is used as fallback when custom category has no model", () => {
@@ -962,7 +962,7 @@ describe("sisyphus-task", () => {
 
       // then
       expect(result).not.toBeNull()
-      expect(result!.config.model).toBe("google/gemini-3.1-pro")
+      expect(result!.config.model).toBe("github-copilot/gemini-3.1-pro")
     })
   })
 
@@ -3444,36 +3444,36 @@ describe("sisyphus-task", () => {
       // when
       const resolved = resolveCategoryConfig(categoryName, { systemDefaultModel: SYSTEM_DEFAULT_MODEL })
       
-      // then - catalog model is used
+      // then - catalog model is used (opencode subscription)
       expect(resolved).not.toBeNull()
-      expect(resolved!.config.model).toBe("openai/gpt-5.4")
+      expect(resolved!.config.model).toBe("opencode/gpt-5.4")
       expect(resolved!.config.variant).toBe("xhigh")
     })
 
     test("default model is used for category with default entry", () => {
       // given - unspecified-low has default model
       const categoryName = "unspecified-low"
-      
+
       // when
       const resolved = resolveCategoryConfig(categoryName, { systemDefaultModel: SYSTEM_DEFAULT_MODEL })
-      
-      // then - default model from DEFAULT_CATEGORIES is used
+
+      // then - default model from DEFAULT_CATEGORIES (github-copilot subscription)
       expect(resolved).not.toBeNull()
-      expect(resolved!.config.model).toBe("anthropic/claude-sonnet-4-6")
+      expect(resolved!.config.model).toBe("github-copilot/claude-sonnet-4-6")
     })
 
     test("category built-in model takes precedence over inheritedModel for builtin category", () => {
       // given - builtin ultrabrain category with its own model, inherited model also provided
       const categoryName = "ultrabrain"
       const inheritedModel = "cliproxy/claude-opus-4-6"
-      
+
       // when
       const resolved = resolveCategoryConfig(categoryName, { inheritedModel, systemDefaultModel: SYSTEM_DEFAULT_MODEL })
-      
-      // then - category's built-in model wins (ultrabrain uses gpt-5.4)
+
+      // then - category's built-in model wins (ultrabrain uses opencode/gpt-5.4)
       expect(resolved).not.toBeNull()
       const actualModel = resolved!.config.model
-      expect(actualModel).toBe("openai/gpt-5.4")
+      expect(actualModel).toBe("opencode/gpt-5.4")
     })
 
     test("when user defines model - modelInfo should report user-defined regardless of inheritedModel", () => {
@@ -3530,9 +3530,9 @@ describe("sisyphus-task", () => {
       // when category has a built-in model (gpt-5.4 for ultrabrain)
       const resolved = resolveCategoryConfig(categoryName, { inheritedModel, systemDefaultModel: SYSTEM_DEFAULT_MODEL })
       
-      // then category's built-in model should be used, NOT inheritedModel
+      // then category's built-in model should be used, NOT inheritedModel (opencode subscription)
       expect(resolved).not.toBeNull()
-      expect(resolved!.model).toBe("openai/gpt-5.4")
+      expect(resolved!.model).toBe("opencode/gpt-5.4")
     })
 
     test("FIXED: systemDefaultModel is used when no userConfig.model and no inheritedModel", () => {
@@ -3597,7 +3597,7 @@ describe("sisyphus-task", () => {
       
       // then should use category's built-in model (gemini-3.1-pro for visual-engineering)
       expect(resolved).not.toBeNull()
-      expect(resolved!.model).toBe("google/gemini-3.1-pro")
+      expect(resolved!.model).toBe("github-copilot/gemini-3.1-pro")
     })
 
     test("systemDefaultModel is used when no other model is available", () => {

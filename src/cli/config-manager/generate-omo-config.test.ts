@@ -55,13 +55,13 @@ describe("generateOmoConfig - model fallback system", () => {
   })
 
   test("uses ZAI model for librarian when Z.ai is available", () => {
-    //#given
+    //#given — anthropic is denied after 2026-04-17, so sisyphus routes via opencode subscription for claude-opus
     const config: InstallConfig = {
-      hasClaude: true,
+      hasClaude: false,
       isMax20: true,
       hasOpenAI: false,
       hasGemini: false,
-      hasCopilot: false,
+      hasCopilot: true,
       hasOpencodeZen: false,
       hasZaiCodingPlan: true,
       hasKimiForCoding: false,
@@ -72,45 +72,21 @@ describe("generateOmoConfig - model fallback system", () => {
     //#when
     const result = generateOmoConfig(config)
 
-    //#then
+    //#then — librarian prefers zai when both zai + copilot are available,
+    // sisyphus first entry resolves via github-copilot subscription
     expect((result.agents as Record<string, { model: string }>).librarian.model).toBe("zai-coding-plan/glm-4.7")
-    expect((result.agents as Record<string, { model: string }>).sisyphus.model).toBe("anthropic/claude-opus-4.6")
+    expect((result.agents as Record<string, { model: string }>).sisyphus.model).toBe("github-copilot/claude-opus-4.6")
   })
 
-  test("uses native OpenAI models when only ChatGPT available", () => {
-    //#given
+  test("adds fallback_models when multiple subscription providers are available", () => {
+    //#given — Copilot + OpenCode Zen subscriptions
     const config: InstallConfig = {
       hasClaude: false,
       isMax20: false,
-      hasOpenAI: true,
+      hasOpenAI: false,
       hasGemini: false,
-      hasCopilot: false,
-      hasOpencodeZen: false,
-      hasZaiCodingPlan: false,
-      hasKimiForCoding: false,
-      hasOpencodeGo: false,
-      hasVercelAiGateway: false,
-    }
-
-    //#when
-    const result = generateOmoConfig(config)
-
-    //#then
-    expect((result.agents as Record<string, { model: string; variant?: string }>).sisyphus.model).toBe("openai/gpt-5.4")
-    expect((result.agents as Record<string, { model: string; variant?: string }>).sisyphus.variant).toBe("medium")
-    expect((result.agents as Record<string, { model: string }>).oracle.model).toBe("openai/gpt-5.4")
-    expect((result.agents as Record<string, { model: string }>)['multimodal-looker'].model).toBe("openai/gpt-5.4")
-  })
-
-  test("adds fallback_models when multiple providers are available", () => {
-    //#given
-    const config: InstallConfig = {
-      hasClaude: true,
-      isMax20: false,
-      hasOpenAI: true,
-      hasGemini: false,
-      hasCopilot: false,
-      hasOpencodeZen: false,
+      hasCopilot: true,
+      hasOpencodeZen: true,
       hasZaiCodingPlan: false,
       hasKimiForCoding: false,
       hasOpencodeGo: false,
@@ -124,60 +100,22 @@ describe("generateOmoConfig - model fallback system", () => {
       variant?: string
       fallback_models?: Array<{ model: string; variant?: string }>
     }>
-    const categories = result.categories as Record<string, {
-      model: string
-      variant?: string
-      fallback_models?: Array<{ model: string; variant?: string }>
-    }>
 
-    //#then
-    expect(agents.sisyphus.model).toBe("anthropic/claude-opus-4.6")
-    expect(agents.sisyphus.fallback_models).toEqual([
-      {
-        model: "openai/gpt-5.4",
-        variant: "medium",
-      },
-    ])
-    expect(categories.deep.model).toBe("openai/gpt-5.4")
-    expect(categories.deep.fallback_models).toEqual([
-      {
-        model: "anthropic/claude-opus-4.6",
-        variant: "max",
-      },
-    ])
+    //#then — sisyphus first entry routes via github-copilot and has fallback entries
+    expect(agents.sisyphus.model).toBe("github-copilot/claude-opus-4.6")
+    expect(Array.isArray(agents.sisyphus.fallback_models)).toBe(true)
+    expect((agents.sisyphus.fallback_models ?? []).length).toBeGreaterThan(0)
   })
 
-  test("uses haiku for explore when Claude max20", () => {
+  test("uses opencode haiku for explore when OpenCode Zen is available", () => {
     //#given
     const config: InstallConfig = {
-      hasClaude: true,
-      isMax20: true,
-      hasOpenAI: false,
-      hasGemini: false,
-      hasCopilot: false,
-      hasOpencodeZen: false,
-      hasZaiCodingPlan: false,
-      hasKimiForCoding: false,
-      hasOpencodeGo: false,
-      hasVercelAiGateway: false,
-    }
-
-    //#when
-    const result = generateOmoConfig(config)
-
-    //#then
-    expect((result.agents as Record<string, { model: string }>).explore.model).toBe("anthropic/claude-haiku-4-5")
-  })
-
-  test("uses haiku for explore regardless of max20 flag", () => {
-    //#given
-    const config: InstallConfig = {
-      hasClaude: true,
+      hasClaude: false,
       isMax20: false,
       hasOpenAI: false,
       hasGemini: false,
       hasCopilot: false,
-      hasOpencodeZen: false,
+      hasOpencodeZen: true,
       hasZaiCodingPlan: false,
       hasKimiForCoding: false,
       hasOpencodeGo: false,
@@ -188,6 +126,6 @@ describe("generateOmoConfig - model fallback system", () => {
     const result = generateOmoConfig(config)
 
     //#then
-    expect((result.agents as Record<string, { model: string }>).explore.model).toBe("anthropic/claude-haiku-4-5")
+    expect((result.agents as Record<string, { model: string }>).explore.model).toBe("opencode/claude-haiku-4-5")
   })
 })

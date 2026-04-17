@@ -1,14 +1,26 @@
 /**
  * Model version migration map: old full model strings → new full model strings.
- * Used to auto-upgrade hardcoded model versions in user configs when the plugin
- * bumps to newer model versions.
  *
- * Keys are full "provider/model" strings. Only openai and anthropic entries needed.
+ * Used to auto-upgrade hardcoded model ids in user configs. After the
+ * 2026-04-17 API-key provider purge, legacy `anthropic/` and `openai/` ids
+ * migrate to their `github-copilot/` and `opencode/` subscription equivalents.
+ *
+ * Keys are full "provider/model" strings.
  */
 export const MODEL_VERSION_MAP: Record<string, string> = {
-  "anthropic/claude-opus-4-5": "anthropic/claude-opus-4-6",
-  "anthropic/claude-sonnet-4-5": "anthropic/claude-sonnet-4-6",
-  "openai/gpt-5.3-codex": "openai/gpt-5.4",
+  // Legacy Anthropic-direct → GitHub Copilot subscription
+  "anthropic/claude-opus-4-5": "github-copilot/claude-opus-4-6",
+  "anthropic/claude-sonnet-4-5": "github-copilot/claude-sonnet-4-6",
+  "anthropic/claude-opus-4-6": "github-copilot/claude-opus-4-6",
+  "anthropic/claude-sonnet-4-6": "github-copilot/claude-sonnet-4-6",
+  "anthropic/claude-haiku-4-5": "github-copilot/claude-haiku-4-5",
+  // Legacy OpenAI-direct → OpenCode Zen subscription (keeps codex family available via opencode)
+  "openai/gpt-5.3-codex": "opencode/gpt-5.3-codex",
+  "openai/gpt-5.4": "opencode/gpt-5.4",
+  "openai/gpt-5.4-mini": "github-copilot/gpt-5-mini",
+  // Legacy Google-direct → GitHub Copilot (which proxies Gemini family)
+  "google/gemini-3.1-pro": "github-copilot/gemini-3.1-pro",
+  "google/gemini-3-flash": "github-copilot/gemini-3-flash",
 }
 
 function migrationKey(oldModel: string, newModel: string): string {
