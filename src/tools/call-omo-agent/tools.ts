@@ -12,6 +12,7 @@ import { buildFallbackChainFromModels } from "../../shared/fallback-chain-from-m
 import { log } from "../../shared"
 import { CONFIG_BASENAME } from "../../shared/plugin-identity"
 import { parseModelString } from "../delegate-task/model-string-parser"
+import { ALLOWED_PROVIDERS, isProviderAllowed } from "../../features/provider-allowlist"
 import { executeBackground } from "./background-executor"
 import { executeSync } from "./sync-executor"
 import { resolveCallableAgents } from "./agent-resolver"
@@ -146,6 +147,12 @@ export function createCallOmoAgent(
         agentOverrides,
         userCategories,
       })
+
+      if (resolvedModel && !isProviderAllowed(resolvedModel.providerID)) {
+        return `Error: Provider "${resolvedModel.providerID}" is not permitted. API-key providers are denied; only subscription providers are allowed: ${Array.from(ALLOWED_PROVIDERS).join(", ")}.
+Configured model: "${resolvedModel.providerID}/${resolvedModel.modelID}"
+To use Claude / Gemini / Codex capability, either pick a subscription-backed model (e.g. "github-copilot/claude-opus-4-6") or instruct your subagent to shell out via Bash to \`claude -p\` / \`gemini\` / \`copilot -p\` / \`opencode run\`.`
+      }
 
       if (args.run_in_background) {
         if (args.session_id) {

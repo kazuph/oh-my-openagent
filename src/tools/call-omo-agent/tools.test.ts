@@ -305,7 +305,7 @@ describe("createCallOmoAgent", () => {
       [],
       {
         explore: {
-          model: "aws/anthropic/claude-sonnet-4",
+          model: "github-copilot/claude-sonnet-4-6",
         },
       },
     )
@@ -330,8 +330,8 @@ describe("createCallOmoAgent", () => {
 
     const [launchArgs] = firstLaunchCall
     expect(launchArgs.model).toEqual({
-      providerID: "aws",
-      modelID: "anthropic/claude-sonnet-4",
+      providerID: "github-copilot",
+      modelID: "claude-sonnet-4-6",
     })
   })
 
@@ -354,7 +354,7 @@ describe("createCallOmoAgent", () => {
       [],
       {
         explore: {
-          model: "openai/gpt-5.4",
+          model: "opencode/gpt-5.4",
           variant: "high",
         },
       },
@@ -380,7 +380,7 @@ describe("createCallOmoAgent", () => {
 
     const [launchArgs] = firstLaunchCall
     expect(launchArgs.model).toEqual({
-      providerID: "openai",
+      providerID: "opencode",
       modelID: "gpt-5.4",
       variant: "high",
     })
@@ -405,7 +405,7 @@ describe("createCallOmoAgent", () => {
       [],
       {
         explore: {
-          model: "openai/gpt-5.4 high",
+          model: "opencode/gpt-5.4 high",
         },
       },
     )
@@ -430,7 +430,7 @@ describe("createCallOmoAgent", () => {
 
     const [launchArgs] = firstLaunchCall
     expect(launchArgs.model).toEqual({
-      providerID: "openai",
+      providerID: "opencode",
       modelID: "gpt-5.4",
       variant: "high",
     })
@@ -460,7 +460,7 @@ describe("createCallOmoAgent", () => {
       },
       {
         research: {
-          model: "openai/gpt-5.4",
+          model: "opencode/gpt-5.4",
         },
       },
     )
@@ -485,7 +485,7 @@ describe("createCallOmoAgent", () => {
 
     const [launchArgs] = firstLaunchCall
     expect(launchArgs.model).toEqual({
-      providerID: "openai",
+      providerID: "opencode",
       modelID: "gpt-5.4",
     })
   })
@@ -510,6 +510,96 @@ describe("createCallOmoAgent", () => {
 
     //#then
     expect(result).toContain("background_task.maxDepth=3")
+  })
+
+  describe("provider allowlist guard", () => {
+    test("rejects a user-configured denied provider model end-to-end", async () => {
+      //#given
+      const mockCtx = createMockCtx(DEFAULT_AGENTS)
+      const toolDef = createCallOmoAgent(
+        mockCtx,
+        mockBackgroundManager,
+        [],
+        { explore: { model: "openai/gpt-5.4" } },
+      )
+      const executeFunc = toolDef.execute as Function
+
+      //#when
+      const result = await executeFunc(
+        {
+          description: "Should be rejected",
+          prompt: "does not matter",
+          subagent_type: "explore",
+          run_in_background: true,
+        },
+        toolCtx,
+      )
+
+      //#then
+      expect(typeof result).toBe("string")
+      expect(result).toContain("openai")
+      expect(result).toContain("API-key providers are denied")
+      expect(result).toContain("claude -p")
+      expect(result).toContain("gemini")
+      expect(result).toContain("copilot -p")
+      expect(result).toContain("opencode run")
+    })
+
+    test("rejects a google-provider agent override so a stale config cannot hit the google API", async () => {
+      //#given
+      const mockCtx = createMockCtx(DEFAULT_AGENTS)
+      const toolDef = createCallOmoAgent(
+        mockCtx,
+        mockBackgroundManager,
+        [],
+        { oracle: { model: "google/gemini-3.1-pro", variant: "high" } },
+      )
+      const executeFunc = toolDef.execute as Function
+
+      //#when
+      const result = await executeFunc(
+        {
+          description: "Should be rejected",
+          prompt: "does not matter",
+          subagent_type: "oracle",
+          run_in_background: true,
+        },
+        toolCtx,
+      )
+
+      //#then
+      expect(typeof result).toBe("string")
+      expect(result).toContain("google")
+      expect(result).toContain("API-key providers are denied")
+    })
+
+    test("allows a subscription-provider agent override (github-copilot) to pass the guard", async () => {
+      //#given
+      const mockCtx = createMockCtx(DEFAULT_AGENTS)
+      const toolDef = createCallOmoAgent(
+        mockCtx,
+        mockBackgroundManager,
+        [],
+        { explore: { model: "github-copilot/claude-haiku-4-5" } },
+      )
+      const executeFunc = toolDef.execute as Function
+
+      //#when
+      const result = await executeFunc(
+        {
+          description: "Should pass",
+          prompt: "does not matter",
+          subagent_type: "explore",
+          run_in_background: true,
+        },
+        toolCtx,
+      )
+
+      //#then
+      // Not an error string — guard passes and task launches.
+      expect(typeof result).toBe("string")
+      expect(result).not.toContain("API-key providers are denied")
+    })
   })
 })
 

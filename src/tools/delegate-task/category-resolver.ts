@@ -12,6 +12,7 @@ import { buildFallbackChainFromModels, findMostSpecificFallbackEntry } from "../
 import { CONFIG_BASENAME } from "../../shared/plugin-identity"
 import { getAvailableModelsForDelegateTask } from "./available-models"
 import { resolveModelForDelegateTask } from "./model-selection"
+import { isProviderAllowedForExecution, ALLOWED_PROVIDERS, getProviderFromModelId } from "../../features/provider-allowlist"
 
 import type { CategoryConfig } from "../../config/schema"
 import type { DelegatedModelConfig } from "./types"
@@ -231,6 +232,22 @@ Configure in one of:
 
 Current category: ${args.category}
 Available categories: ${categoryNames.join(", ")}`,
+    }
+  }
+
+  if (actualModel && !isProviderAllowedForExecution(actualModel)) {
+    const provider = getProviderFromModelId(actualModel) ?? "(none)"
+    return {
+      agentToUse: "",
+      categoryModel: undefined,
+      categoryPromptAppend: undefined,
+      maxPromptTokens: undefined,
+      modelInfo: undefined,
+      actualModel: undefined,
+      isUnstableAgent: false,
+      error: `Provider "${provider}" is not permitted. API-key providers are denied; only subscription providers are allowed: ${Array.from(ALLOWED_PROVIDERS).join(", ")}.
+Configured model: "${actualModel}"
+To use Claude / Gemini / Codex capability, either pick a subscription-backed model (e.g. "github-copilot/claude-opus-4-6") or instruct your subagent to shell out via Bash to \`claude -p\` / \`gemini\` / \`copilot -p\` / \`opencode run\`.`,
     }
   }
 
