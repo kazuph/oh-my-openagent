@@ -49,7 +49,7 @@ describe("resolveCategoryExecution", () => {
 			deep: {},
 		}
 		const inheritedModel = undefined
-		const systemDefaultModel = "anthropic/claude-sonnet-4-6"
+		const systemDefaultModel = "github-copilot/claude-sonnet-4-6"
 
 		//#when
 		const result = await resolveCategoryExecution(args, executorCtx, inheritedModel, systemDefaultModel)
@@ -74,7 +74,7 @@ describe("resolveCategoryExecution", () => {
 		}
 		const executorCtx = createMockExecutorContext()
 		const inheritedModel = undefined
-		const systemDefaultModel = "anthropic/claude-sonnet-4-6"
+		const systemDefaultModel = "github-copilot/claude-sonnet-4-6"
 
 		//#when
 		const result = await resolveCategoryExecution(args, executorCtx, inheritedModel, systemDefaultModel)
@@ -99,30 +99,30 @@ describe("resolveCategoryExecution", () => {
 		const executorCtx = createMockExecutorContext()
 		executorCtx.userCategories = {
 			deep: {
-				model: "quotio/claude-opus-4-6",
-				fallback_models: ["quotio/kimi-k2.5", "openai/gpt-5.2(high)"],
+				model: "github-copilot/claude-opus-4-6",
+				fallback_models: ["opencode/kimi-k2.5", "opencode/gpt-5.2(high)"],
 			},
 		}
 
 		//#when
-		const result = await resolveCategoryExecution(args, executorCtx, undefined, "anthropic/claude-sonnet-4-6")
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
 
 		//#then
 		expect(result.error).toBeUndefined()
 		expect(result.fallbackChain).toEqual([
-			{ providers: ["quotio"], model: "kimi-k2.5", variant: undefined },
-			{ providers: ["openai"], model: "gpt-5.2", variant: "high" },
+			{ providers: ["opencode"], model: "kimi-k2.5", variant: undefined },
+			{ providers: ["opencode"], model: "gpt-5.2", variant: "high" },
 		])
 	})
 
 	test("promotes object-style fallback model settings to categoryModel when fallback becomes initial model", async () => {
 		//#given
 		const cacheSpy = spyOn(connectedProvidersCache, "readProviderModelsCache").mockReturnValue({
-			models: { openai: ["gpt-5.4"] },
-			connected: ["openai"],
+			models: { opencode: ["gpt-5.4"] },
+			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "quick",
 			prompt: "test prompt",
@@ -137,7 +137,7 @@ describe("resolveCategoryExecution", () => {
 			quick: {
 				fallback_models: [
 					{
-						model: "openai/gpt-5.4 high",
+						model: "opencode/gpt-5.4 high",
 						variant: "low",
 						reasoningEffort: "high",
 						temperature: 0.4,
@@ -150,13 +150,13 @@ describe("resolveCategoryExecution", () => {
 		}
 
 		//#when
-		const result = await resolveCategoryExecution(args, executorCtx, undefined, "anthropic/claude-sonnet-4-6")
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
 
 		//#then
 		expect(result.error).toBeUndefined()
-		expect(result.actualModel).toBe("openai/gpt-5.4")
+		expect(result.actualModel).toBe("opencode/gpt-5.4")
 		expect(result.categoryModel).toEqual({
-			providerID: "openai",
+			providerID: "opencode",
 			modelID: "gpt-5.4",
 			variant: "low",
 			reasoningEffort: "high",
@@ -183,12 +183,12 @@ describe("resolveCategoryExecution", () => {
 		const executorCtx = createMockExecutorContext()
 		executorCtx.userCategories = {
 			quick: {
-				model: "openai/gpt-5.4 high",
+				model: "opencode/gpt-5.4 high",
 			},
 		}
 
 		//#when
-		const result = await resolveCategoryExecution(args, executorCtx, undefined, "anthropic/claude-sonnet-4-6")
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
 
 		//#then
 		expect(result.error).toBeUndefined()
@@ -197,9 +197,9 @@ describe("resolveCategoryExecution", () => {
 		if (!result.actualModel || !result.categoryModel) {
 			throw new Error("Expected resolved model and category model")
 		}
-		expect(result.actualModel).toBe("openai/gpt-5.4")
+		expect(result.actualModel).toBe("opencode/gpt-5.4")
 		expect(result.categoryModel).toEqual({
-			providerID: "openai",
+			providerID: "opencode",
 			modelID: "gpt-5.4",
 			variant: "high",
 		})
@@ -208,11 +208,11 @@ describe("resolveCategoryExecution", () => {
 	test("does not apply object-style fallback settings when the configured primary model matches directly", async () => {
 		//#given
 		const cacheSpy = spyOn(connectedProvidersCache, "readProviderModelsCache").mockReturnValue({
-			models: { openai: ["gpt-5.4-preview"] },
-			connected: ["openai"],
+			models: { opencode: ["gpt-5.4-preview"] },
+			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "quick",
 			prompt: "test prompt",
@@ -225,10 +225,10 @@ describe("resolveCategoryExecution", () => {
 		const executorCtx = createMockExecutorContext()
 		executorCtx.userCategories = {
 			quick: {
-				model: "openai/gpt-5.4-preview",
+				model: "opencode/gpt-5.4-preview",
 				fallback_models: [
 					{
-						model: "openai/gpt-5.4",
+						model: "opencode/gpt-5.4",
 						variant: "low",
 						reasoningEffort: "high",
 					},
@@ -237,13 +237,13 @@ describe("resolveCategoryExecution", () => {
 		}
 
 		//#when
-		const result = await resolveCategoryExecution(args, executorCtx, undefined, "anthropic/claude-sonnet-4-6")
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
 
 		//#then
 		expect(result.error).toBeUndefined()
-		expect(result.actualModel).toBe("openai/gpt-5.4-preview")
+		expect(result.actualModel).toBe("opencode/gpt-5.4-preview")
 		expect(result.categoryModel).toEqual({
-			providerID: "openai",
+			providerID: "opencode",
 			modelID: "gpt-5.4-preview",
 			variant: undefined,
 		})
@@ -254,11 +254,11 @@ describe("resolveCategoryExecution", () => {
 	test("matches promoted fallback settings after fuzzy model resolution", async () => {
 		//#given
 		const cacheSpy = spyOn(connectedProvidersCache, "readProviderModelsCache").mockReturnValue({
-			models: { openai: ["gpt-5.4-preview"] },
-			connected: ["openai"],
+			models: { opencode: ["gpt-5.4-preview"] },
+			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "quick",
 			prompt: "test prompt",
@@ -273,7 +273,7 @@ describe("resolveCategoryExecution", () => {
 			quick: {
 				fallback_models: [
 					{
-						model: "openai/gpt-5.4",
+						model: "opencode/gpt-5.4",
 						variant: "low",
 						reasoningEffort: "high",
 						temperature: 0.6,
@@ -286,13 +286,13 @@ describe("resolveCategoryExecution", () => {
 		}
 
 		//#when
-		const result = await resolveCategoryExecution(args, executorCtx, undefined, "anthropic/claude-sonnet-4-6")
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
 
 		//#then
 		expect(result.error).toBeUndefined()
-		expect(result.actualModel).toBe("openai/gpt-5.4-preview")
+		expect(result.actualModel).toBe("opencode/gpt-5.4-preview")
 		expect(result.categoryModel).toEqual({
-			providerID: "openai",
+			providerID: "opencode",
 			modelID: "gpt-5.4-preview",
 			variant: "low",
 			reasoningEffort: "high",
@@ -308,11 +308,11 @@ describe("resolveCategoryExecution", () => {
 	test("prefers exact promoted fallback match over earlier fuzzy prefix match", async () => {
 		//#given
 		const cacheSpy = spyOn(connectedProvidersCache, "readProviderModelsCache").mockReturnValue({
-			models: { openai: ["gpt-5.4-preview"] },
-			connected: ["openai"],
+			models: { opencode: ["gpt-5.4-preview"] },
+			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "quick",
 			prompt: "test prompt",
@@ -327,12 +327,12 @@ describe("resolveCategoryExecution", () => {
 			quick: {
 				fallback_models: [
 					{
-						model: "openai/gpt-5.4",
+						model: "opencode/gpt-5.4",
 						variant: "low",
 						reasoningEffort: "medium",
 					},
 					{
-						model: "openai/gpt-5.4-preview",
+						model: "opencode/gpt-5.4-preview",
 						variant: "max",
 						reasoningEffort: "high",
 					},
@@ -341,13 +341,13 @@ describe("resolveCategoryExecution", () => {
 		}
 
 		//#when
-		const result = await resolveCategoryExecution(args, executorCtx, undefined, "anthropic/claude-sonnet-4-6")
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
 
 		//#then
 		expect(result.error).toBeUndefined()
-		expect(result.actualModel).toBe("openai/gpt-5.4-preview")
+		expect(result.actualModel).toBe("opencode/gpt-5.4-preview")
 		expect(result.categoryModel).toEqual({
-			providerID: "openai",
+			providerID: "opencode",
 			modelID: "gpt-5.4-preview",
 			variant: "max",
 			reasoningEffort: "high",
@@ -359,11 +359,11 @@ describe("resolveCategoryExecution", () => {
 	test("matches promoted fallback settings when fuzzy resolution extends configured model without hyphen", async () => {
 		//#given
 		const cacheSpy = spyOn(connectedProvidersCache, "readProviderModelsCache").mockReturnValue({
-			models: { openai: ["gpt-5.4o"] },
-			connected: ["openai"],
+			models: { opencode: ["gpt-5.4o"] },
+			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "quick",
 			prompt: "test prompt",
@@ -378,7 +378,7 @@ describe("resolveCategoryExecution", () => {
 			quick: {
 				fallback_models: [
 					{
-						model: "openai/gpt-5.4",
+						model: "opencode/gpt-5.4",
 						variant: "low",
 						reasoningEffort: "high",
 					},
@@ -387,13 +387,13 @@ describe("resolveCategoryExecution", () => {
 		}
 
 		//#when
-		const result = await resolveCategoryExecution(args, executorCtx, undefined, "anthropic/claude-sonnet-4-6")
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
 
 		//#then
 		expect(result.error).toBeUndefined()
-		expect(result.actualModel).toBe("openai/gpt-5.4o")
+		expect(result.actualModel).toBe("opencode/gpt-5.4o")
 		expect(result.categoryModel).toEqual({
-			providerID: "openai",
+			providerID: "opencode",
 			modelID: "gpt-5.4o",
 			variant: "low",
 			reasoningEffort: "high",
@@ -405,11 +405,11 @@ describe("resolveCategoryExecution", () => {
 	test("prefers the most specific prefix match when fallback entries share a prefix", async () => {
 		//#given
 		const cacheSpy = spyOn(connectedProvidersCache, "readProviderModelsCache").mockReturnValue({
-			models: { openai: ["gpt-4o"] },
-			connected: ["openai"],
+			models: { opencode: ["gpt-4o"] },
+			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "deep",
 			prompt: "test prompt",
@@ -429,7 +429,7 @@ describe("resolveCategoryExecution", () => {
 						reasoningEffort: "medium",
 					},
 					{
-						model: "openai/gpt-4o",
+						model: "opencode/gpt-4o",
 						variant: "max",
 						reasoningEffort: "high",
 					},
@@ -438,13 +438,13 @@ describe("resolveCategoryExecution", () => {
 		}
 
 		//#when
-		const result = await resolveCategoryExecution(args, executorCtx, undefined, "anthropic/claude-sonnet-4-6")
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
 
 		//#then
 		expect(result.error).toBeUndefined()
-		expect(result.actualModel).toBe("openai/gpt-4o")
+		expect(result.actualModel).toBe("opencode/gpt-4o")
 		expect(result.categoryModel).toEqual({
-			providerID: "openai",
+			providerID: "opencode",
 			modelID: "gpt-4o",
 			variant: "max",
 			reasoningEffort: "high",
@@ -467,18 +467,18 @@ describe("resolveCategoryExecution", () => {
 		const executorCtx = createMockExecutorContext()
 		executorCtx.userCategories = {
 			quick: {
-				model: "animal-gateway-xai/grok-4-fast-non-reasoning",
+				model: "github-copilot/grok-4-fast-non-reasoning",
 			},
 		}
 
 		//#when
-		const result = await resolveCategoryExecution(args, executorCtx, undefined, "anthropic/claude-sonnet-4-6")
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
 
 		//#then
 		expect(result.error).toBeUndefined()
-		expect(result.actualModel).toBe("animal-gateway-xai/grok-4-fast-non-reasoning")
+		expect(result.actualModel).toBe("github-copilot/grok-4-fast-non-reasoning")
 		expect(result.categoryModel).toEqual({
-			providerID: "animal-gateway-xai",
+			providerID: "github-copilot",
 			modelID: "grok-4-fast-non-reasoning",
 			variant: undefined,
 		})
@@ -497,19 +497,110 @@ describe("resolveCategoryExecution", () => {
 			enableSkillTools: false,
 		}
 		const executorCtx = createMockExecutorContext()
-		executorCtx.sisyphusJuniorModel = "anthropic/claude-sonnet-4-6"
+		executorCtx.sisyphusJuniorModel = "github-copilot/claude-sonnet-4-6"
 
 		//#when
-		const result = await resolveCategoryExecution(args, executorCtx, undefined, "anthropic/claude-sonnet-4-6")
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
 
 		//#then
 		expect(result.error).toBeUndefined()
-		expect(result.actualModel).toBe("anthropic/claude-sonnet-4-6")
+		expect(result.actualModel).toBe("github-copilot/claude-sonnet-4-6")
 		expect(result.categoryModel).toEqual({
-			providerID: "anthropic",
+			providerID: "github-copilot",
 			modelID: "claude-sonnet-4-6",
 			variant: undefined,
 		})
 		expect(result.fallbackChain).toBeUndefined()
+	})
+
+	test("rejects a user-configured denied provider model with a subscription-only guard error", async () => {
+		//#given
+		const args = {
+			category: "deep",
+			prompt: "test prompt",
+			description: "Test task",
+			run_in_background: false,
+			load_skills: [],
+			blockedBy: undefined,
+			enableSkillTools: false,
+		}
+		const executorCtx = createMockExecutorContext()
+		executorCtx.userCategories = {
+			deep: {
+				model: "openai/gpt-5.4",
+			},
+		}
+
+		//#when
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
+
+		//#then
+		expect(result.agentToUse).toBe("")
+		expect(result.categoryModel).toBeUndefined()
+		expect(result.actualModel).toBeUndefined()
+		expect(result.error).toBeDefined()
+		expect(result.error).toContain("openai")
+		expect(result.error).toContain("API-key providers are denied")
+		expect(result.error).toContain("claude -p")
+		expect(result.error).toContain("gemini")
+		expect(result.error).toContain("copilot -p")
+		expect(result.error).toContain("opencode run")
+	})
+
+	test("rejects a google-provider category model with a subscription-only guard error", async () => {
+		//#given
+		const args = {
+			category: "visual-engineering",
+			prompt: "test prompt",
+			description: "Test task",
+			run_in_background: false,
+			load_skills: [],
+			blockedBy: undefined,
+			enableSkillTools: false,
+		}
+		const executorCtx = createMockExecutorContext()
+		executorCtx.userCategories = {
+			"visual-engineering": {
+				model: "google/gemini-3.1-pro",
+				variant: "high",
+			},
+		}
+
+		//#when
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
+
+		//#then
+		expect(result.error).toBeDefined()
+		expect(result.error).toContain("google")
+		expect(result.error).toContain("github-copilot")
+		expect(result.categoryModel).toBeUndefined()
+	})
+
+	test("rejects an anthropic-provider category model so a stale user config cannot hit a denied API", async () => {
+		//#given
+		const args = {
+			category: "unspecified-high",
+			prompt: "test prompt",
+			description: "Test task",
+			run_in_background: false,
+			load_skills: [],
+			blockedBy: undefined,
+			enableSkillTools: false,
+		}
+		const executorCtx = createMockExecutorContext()
+		executorCtx.userCategories = {
+			"unspecified-high": {
+				model: "anthropic/claude-opus-4-6",
+				variant: "max",
+			},
+		}
+
+		//#when
+		const result = await resolveCategoryExecution(args, executorCtx, undefined, "github-copilot/claude-sonnet-4-6")
+
+		//#then
+		expect(result.error).toBeDefined()
+		expect(result.error).toContain("anthropic")
+		expect(result.error).toContain("API-key providers are denied")
 	})
 })

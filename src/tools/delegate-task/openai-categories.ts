@@ -1,4 +1,5 @@
 import type { BuiltinCategoryDefinition } from "./builtin-category-definition"
+import { CLI_ESCALATION_PROMPT_APPEND } from "./cli-escalation"
 
 const ULTRABRAIN_CATEGORY_PROMPT_APPEND = `<Category_Context>
 You are working on DEEP LOGICAL REASONING / COMPLEX ARCHITECTURE tasks.
@@ -97,20 +98,20 @@ If your prompt lacks this structure, REWRITE IT before delegating.
 export const OPENAI_CATEGORIES: BuiltinCategoryDefinition[] = [
   {
     name: "ultrabrain",
-    config: { model: "openai/gpt-5.4", variant: "xhigh" },
+    config: { model: "opencode/gpt-5.4", variant: "xhigh" },
     description: "Use ONLY for genuinely hard, logic-heavy tasks. Give clear goals only, not step-by-step instructions.",
-    promptAppend: ULTRABRAIN_CATEGORY_PROMPT_APPEND,
+    promptAppend: `${ULTRABRAIN_CATEGORY_PROMPT_APPEND}\n\n${CLI_ESCALATION_PROMPT_APPEND}`,
   },
   {
     name: "deep",
-    config: { model: "openai/gpt-5.4", variant: "medium" },
+    config: { model: "opencode/gpt-5.4", variant: "medium" },
     description: "Goal-oriented autonomous problem-solving. Thorough research before action. For hairy problems requiring deep understanding.",
-    promptAppend: DEEP_CATEGORY_PROMPT_APPEND,
+    promptAppend: `${DEEP_CATEGORY_PROMPT_APPEND}\n\n${CLI_ESCALATION_PROMPT_APPEND}`,
   },
   {
     name: "quick",
-    config: { model: "openai/gpt-5.4-mini" },
+    config: { model: "github-copilot/gpt-5-mini" },
     description: "Trivial tasks - single file changes, typo fixes, simple modifications",
-    promptAppend: QUICK_CATEGORY_PROMPT_APPEND,
+    promptAppend: `${QUICK_CATEGORY_PROMPT_APPEND}\n\n${CLI_ESCALATION_PROMPT_APPEND}`,
   },
 ]

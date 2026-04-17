@@ -1,4 +1,5 @@
 import type { BuiltinCategoryDefinition } from "./builtin-category-definition"
+import { CLI_ESCALATION_PROMPT_APPEND } from "./cli-escalation"
 
 const VISUAL_CATEGORY_PROMPT_APPEND = `<Category_Context>
 You are working on VISUAL/UI tasks.
@@ -109,14 +110,14 @@ Approach:
 export const GOOGLE_CATEGORIES: BuiltinCategoryDefinition[] = [
   {
     name: "visual-engineering",
-    config: { model: "google/gemini-3.1-pro", variant: "high" },
+    config: { model: "github-copilot/gemini-3.1-pro", variant: "high" },
     description: "Frontend, UI/UX, design, styling, animation",
-    promptAppend: VISUAL_CATEGORY_PROMPT_APPEND,
+    promptAppend: `${VISUAL_CATEGORY_PROMPT_APPEND}\n\n${CLI_ESCALATION_PROMPT_APPEND}`,
   },
   {
     name: "artistry",
-    config: { model: "google/gemini-3.1-pro", variant: "high" },
+    config: { model: "github-copilot/gemini-3.1-pro", variant: "high" },
     description: "Complex problem-solving with unconventional, creative approaches - beyond standard patterns",
-    promptAppend: ARTISTRY_CATEGORY_PROMPT_APPEND,
+    promptAppend: `${ARTISTRY_CATEGORY_PROMPT_APPEND}\n\n${CLI_ESCALATION_PROMPT_APPEND}`,
   },
 ]

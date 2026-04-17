@@ -326,39 +326,9 @@ describe("generateModelConfig", () => {
       expect(result.agents?.explore?.model).toBe("opencode/gpt-5-nano")
     })
 
-    test("explore uses Claude haiku when Claude available", () => {
-      // #given Claude is available
-      const config = createConfig({ hasClaude: true, isMax20: true })
-
-      // #when generateModelConfig is called
-      const result = generateModelConfig(config)
-
-      // #then explore should use claude-haiku-4-5
-      expect(result.agents?.explore?.model).toBe("anthropic/claude-haiku-4-5")
-    })
-
-    test("explore uses Claude haiku regardless of isMax20 flag", () => {
-      // #given Claude is available without Max 20 plan
-      const config = createConfig({ hasClaude: true, isMax20: false })
-
-      // #when generateModelConfig is called
-      const result = generateModelConfig(config)
-
-      // #then explore should use claude-haiku-4-5 (isMax20 doesn't affect explore)
-      expect(result.agents?.explore?.model).toBe("anthropic/claude-haiku-4-5")
-    })
-
-    test("explore uses OpenAI model when only OpenAI available", () => {
-      // #given only OpenAI is available
-      const config = createConfig({ hasOpenAI: true })
-
-      // #when generateModelConfig is called
-      const result = generateModelConfig(config)
-
-      // #then explore should use native OpenAI model
-      expect(result.agents?.explore?.model).toBe("openai/gpt-5.4")
-      expect(result.agents?.explore?.variant).toBe("medium")
-    })
+    // NOTE: After the 2026-04-17 API-key provider purge, "only Claude" / "only
+    // OpenAI" routing to anthropic/openai no longer exists. Those tests were
+    // deleted because the branches were removed from the source.
 
     test("explore uses gpt-5-mini when only Copilot available", () => {
       // #given only Copilot is available
@@ -373,21 +343,21 @@ describe("generateModelConfig", () => {
   })
 
   describe("Sisyphus agent special cases", () => {
-    test("Sisyphus is created when at least one fallback provider is available (Claude)", () => {
-      // #given
-      const config = createConfig({ hasClaude: true, isMax20: true })
+    test("Sisyphus is created when subscription providers are available (Copilot)", () => {
+      // #given Copilot is available (post-migration subscription routing)
+      const config = createConfig({ hasCopilot: true, isMax20: true })
 
       // #when
       const result = generateModelConfig(config)
 
-      // #then
-      expect(result.agents?.sisyphus?.model).toBe("anthropic/claude-opus-4.6")
+      // #then — first entry in sisyphus chain routes through github-copilot
+      expect(result.agents?.sisyphus?.model).toBe("github-copilot/claude-opus-4.6")
     })
 
-    test("Sisyphus is created when multiple fallback providers are available", () => {
+    test("Sisyphus is created when multiple subscription providers are available", () => {
       // #given
       const config = createConfig({
-        hasClaude: true,
+        hasCopilot: true,
         hasKimiForCoding: true,
         hasOpencodeZen: true,
         hasZaiCodingPlan: true,
@@ -398,73 +368,15 @@ describe("generateModelConfig", () => {
       const result = generateModelConfig(config)
 
       // #then
-      expect(result.agents?.sisyphus?.model).toBe("anthropic/claude-opus-4.6")
-    })
-
-    test("Sisyphus resolves to gpt-5.4 medium when only OpenAI is available", () => {
-      // #given
-      const config = createConfig({ hasOpenAI: true })
-
-      // #when
-      const result = generateModelConfig(config)
-
-      // #then
-      expect(result.agents?.sisyphus?.model).toBe("openai/gpt-5.4")
-      expect(result.agents?.sisyphus?.variant).toBe("medium")
+      expect(result.agents?.sisyphus?.model).toBe("github-copilot/claude-opus-4.6")
     })
   })
 
-  describe("OpenAI fallback coverage", () => {
-    test("Atlas resolves to OpenAI when only OpenAI is available", () => {
-      // #given
-      const config = createConfig({ hasOpenAI: true })
-
-      // #when
-      const result = generateModelConfig(config)
-
-      // #then
-      expect(result.agents?.atlas?.model).toBe("openai/gpt-5.4")
-      expect(result.agents?.atlas?.variant).toBe("medium")
-    })
-
-    test("Metis resolves to OpenAI when only OpenAI is available", () => {
-      // #given
-      const config = createConfig({ hasOpenAI: true })
-
-      // #when
-      const result = generateModelConfig(config)
-
-      // #then
-      expect(result.agents?.metis?.model).toBe("openai/gpt-5.4")
-      expect(result.agents?.metis?.variant).toBe("high")
-    })
-
-    test("Sisyphus-Junior resolves to OpenAI when only OpenAI is available", () => {
-      // #given
-      const config = createConfig({ hasOpenAI: true })
-
-      // #when
-      const result = generateModelConfig(config)
-
-      // #then
-      expect(result.agents?.["sisyphus-junior"]?.model).toBe("openai/gpt-5.4")
-      expect(result.agents?.["sisyphus-junior"]?.variant).toBe("medium")
-    })
-  })
+  // NOTE: The "OpenAI-only" fallback coverage tests were removed. After the
+  // 2026-04-17 subscription-only purge, the openai provider is denied; native
+  // OpenAI routing for Atlas/Metis/Sisyphus-Junior/Hephaestus no longer exists.
 
   describe("Hephaestus agent special cases", () => {
-    test("Hephaestus is created when OpenAI is available (openai provider connected)", () => {
-      // #given
-      const config = createConfig({ hasOpenAI: true })
-
-      // #when
-      const result = generateModelConfig(config)
-
-      // #then
-      expect(result.agents?.hephaestus?.model).toBe("openai/gpt-5.4")
-      expect(result.agents?.hephaestus?.variant).toBe("medium")
-    })
-
     test("Hephaestus falls back to Copilot GPT-5.4 when only Copilot is available", () => {
       // #given
       const config = createConfig({ hasCopilot: true })
@@ -553,38 +465,22 @@ describe("generateModelConfig", () => {
   })
 
   describe("special-case agents include fallback_models", () => {
-    test("explore includes fallback_models when Copilot and Claude are both available", () => {
-      // #given both Copilot and Claude are available
-      const config = createConfig({ hasCopilot: true, hasClaude: true })
+    test("explore includes fallback_models when Copilot and OpenCode Zen are both available", () => {
+      // #given both Copilot and OpenCode Zen are available (post-migration subscription routing)
+      const config = createConfig({ hasCopilot: true, hasOpencodeZen: true })
 
       // #when generateModelConfig is called
       const result = generateModelConfig(config)
 
       // #then explore should have fallback_models from the remaining chain entries
-      expect(result.agents?.explore?.model).toBe("anthropic/claude-haiku-4-5")
+      expect(result.agents?.explore?.model).toBe("opencode/claude-haiku-4-5")
       expect(result.agents?.explore?.fallback_models).toBeDefined()
       expect(result.agents?.explore?.fallback_models?.length).toBeGreaterThan(0)
     })
 
-    test("explore omits fallback_models when only one provider matches chain entries", () => {
-      // #given only Claude is available
-      const config = createConfig({ hasClaude: true })
-
-      // #when generateModelConfig is called
-      const result = generateModelConfig(config)
-
-      // #then explore should not have fallback_models (only one chain entry matches)
-      expect(result.agents?.explore?.model).toBe("anthropic/claude-haiku-4-5")
-      expect(result.agents?.explore?.fallback_models).toEqual([
-        {
-          model: "anthropic/claude-haiku-4.5",
-        },
-      ])
-    })
-
-    test("librarian includes fallback_models when opencode-go and Claude are both available", () => {
-      // #given opencode-go and Claude are available
-      const config = createConfig({ hasOpencodeGo: true, hasClaude: true })
+    test("librarian includes fallback_models when opencode-go and opencode are both available", () => {
+      // #given opencode-go and opencode are available (post-migration subscription routing)
+      const config = createConfig({ hasOpencodeGo: true, hasOpencodeZen: true })
 
       // #when generateModelConfig is called
       const result = generateModelConfig(config)
@@ -608,73 +504,9 @@ describe("generateModelConfig", () => {
     })
   })
 
-  describe("Vercel AI Gateway provider", () => {
-    test("uses vercel/ model strings when only Vercel AI Gateway is available", () => {
-      // #given only Vercel AI Gateway is available
-      const config = createConfig({ hasVercelAiGateway: true })
-
-      // #when generateModelConfig is called
-      const result = generateModelConfig(config)
-
-      // #then should use vercel/<sub-provider>/<model> format
-      expect(result).toMatchSnapshot()
-    })
-
-    test("uses vercel/ model strings with isMax20 flag", () => {
-      // #given Vercel AI Gateway is available with Max 20 plan
-      const config = createConfig({ hasVercelAiGateway: true, isMax20: true })
-
-      // #when generateModelConfig is called
-      const result = generateModelConfig(config)
-
-      // #then should use higher capability models via gateway
-      expect(result).toMatchSnapshot()
-    })
-
-    test("explore uses vercel/minimax/minimax-m2.7-highspeed when only gateway available", () => {
-      // #given only Vercel AI Gateway is available
-      const config = createConfig({ hasVercelAiGateway: true })
-
-      // #when generateModelConfig is called
-      const result = generateModelConfig(config)
-
-      // #then explore should use gateway-routed minimax (preferred over claude-haiku)
-      expect(result.agents?.explore?.model).toBe("vercel/minimax/minimax-m2.7-highspeed")
-    })
-
-    test("librarian uses vercel/minimax/minimax-m2.7 when only gateway available", () => {
-      // #given only Vercel AI Gateway is available
-      const config = createConfig({ hasVercelAiGateway: true })
-
-      // #when generateModelConfig is called
-      const result = generateModelConfig(config)
-
-      // #then librarian should use gateway-routed minimax (preferred over claude-haiku)
-      expect(result.agents?.librarian?.model).toBe("vercel/minimax/minimax-m2.7")
-    })
-
-    test("Hephaestus is created when only Vercel AI Gateway is available", () => {
-      // #given only Vercel AI Gateway is available
-      const config = createConfig({ hasVercelAiGateway: true })
-
-      // #when generateModelConfig is called
-      const result = generateModelConfig(config)
-
-      // #then hephaestus should be created with gateway-routed gpt-5.4
-      expect(result.agents?.hephaestus?.model).toBe("vercel/openai/gpt-5.4")
-    })
-
-    test("native providers take priority over gateway", () => {
-      // #given Claude and Vercel AI Gateway are both available
-      const config = createConfig({ hasClaude: true, hasVercelAiGateway: true })
-
-      // #when generateModelConfig is called
-      const result = generateModelConfig(config)
-
-      // #then should prefer native anthropic over gateway
-      expect(result.agents?.sisyphus?.model).toBe("anthropic/claude-opus-4.6")
-    })
-  })
+  // NOTE: The entire Vercel AI Gateway describe block was deleted. Vercel is
+  // a denied (API-key) provider after the 2026-04-17 purge; the branch no
+  // longer exists in the source.
 
   describe("schema URL", () => {
     test("always includes correct schema URL", () => {

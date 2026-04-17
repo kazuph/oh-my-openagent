@@ -218,14 +218,16 @@ describe("createEventHandler - model fallback", () => {
       output,
     )
 
-    //#then
+    //#then - first sisyphus fallback entry after the denied anthropic provider
+    // is github-copilot/claude-opus-4-6 (max variant). The legacy anthropic
+    // chain was stripped by the 2026-04-17 subscription-only purge.
     expect(abortCalls).toEqual([sessionID])
     expect(promptCalls).toEqual([sessionID])
     expect(output.message["model"]).toMatchObject({
-      providerID: "opencode-go",
-      modelID: "kimi-k2.5",
+      providerID: "github-copilot",
+      modelID: "claude-opus-4.6",
     })
-    expect(output.message["variant"]).toBeUndefined()
+    expect(output.message["variant"]).toBe("max")
   })
 
   test("does not spam abort/prompt when session.status retry countdown updates", async () => {
@@ -549,20 +551,20 @@ describe("createEventHandler - model fallback", () => {
     //#when - first retry cycle
     const first = await triggerRetryCycle()
 
-    //#then - first fallback entry applied (no-op skip: claude-opus-4-6 matches current model after normalization)
+    //#then - first sisyphus fallback entry is github-copilot/claude-opus-4-6 max
     expect(first.message["model"]).toMatchObject({
-      providerID: "opencode-go",
-      modelID: "kimi-k2.5",
+      providerID: "github-copilot",
+      modelID: "claude-opus-4.6",
     })
-    expect(first.message["variant"]).toBeUndefined()
+    expect(first.message["variant"]).toBe("max")
 
     //#when - second retry cycle
     const second = await triggerRetryCycle()
 
-    //#then - second fallback entry applied (chain advanced past opencode-go/kimi-k2.5)
+    //#then - second fallback entry applied (chain advanced to opencode-go/kimi-k2.5)
     expect(second.message["model"]).toMatchObject({
-      providerID: "kimi-for-coding",
-      modelID: "k2p5",
+      providerID: "opencode-go",
+      modelID: "kimi-k2.5",
     })
     expect(second.message["variant"]).toBeUndefined()
     expect(abortCalls).toEqual([sessionID, sessionID])

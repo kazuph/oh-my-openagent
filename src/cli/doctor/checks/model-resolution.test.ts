@@ -11,11 +11,11 @@ describe("model-resolution check", () => {
 
       const info = getModelResolutionInfo()
 
-      // then: Should have agent entries
+      // then: Should have agent entries (subscription-only providers post-2026-04-17)
       const sisyphus = info.agents.find((a) => a.name === "sisyphus")
       expect(sisyphus).toBeDefined()
       expect(sisyphus!.requirement.fallbackChain[0]?.model).toBe("claude-opus-4-6")
-      expect(sisyphus!.requirement.fallbackChain[0]?.providers).toContain("anthropic")
+      expect(sisyphus!.requirement.fallbackChain[0]?.providers).toContain("github-copilot")
     })
 
     it("returns category requirements with provider chains", async () => {
@@ -27,7 +27,7 @@ describe("model-resolution check", () => {
       const visual = info.categories.find((c) => c.name === "visual-engineering")
       expect(visual).toBeDefined()
       expect(visual!.requirement.fallbackChain[0]?.model).toBe("gemini-3.1-pro")
-      expect(visual!.requirement.fallbackChain[0]?.providers).toContain("google")
+      expect(visual!.requirement.fallbackChain[0]?.providers).toContain("github-copilot")
     })
   })
 
@@ -87,7 +87,7 @@ describe("model-resolution check", () => {
       expect(sisyphus).toBeDefined()
       expect(sisyphus!.userOverride).toBeUndefined()
       expect(sisyphus!.effectiveResolution).toContain("Provider fallback:")
-      expect(sisyphus!.effectiveResolution).toContain("anthropic")
+      expect(sisyphus!.effectiveResolution).toContain("github-copilot")
     })
 
     it("captures user variant for agent when configured", async () => {
