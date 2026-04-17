@@ -122,7 +122,7 @@ describe("resolveCategoryExecution", () => {
 			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "quick",
 			prompt: "test prompt",
@@ -212,7 +212,7 @@ describe("resolveCategoryExecution", () => {
 			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "quick",
 			prompt: "test prompt",
@@ -258,7 +258,7 @@ describe("resolveCategoryExecution", () => {
 			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "quick",
 			prompt: "test prompt",
@@ -312,7 +312,7 @@ describe("resolveCategoryExecution", () => {
 			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "quick",
 			prompt: "test prompt",
@@ -363,7 +363,7 @@ describe("resolveCategoryExecution", () => {
 			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "quick",
 			prompt: "test prompt",
@@ -409,7 +409,7 @@ describe("resolveCategoryExecution", () => {
 			connected: ["opencode"],
 			updatedAt: "2026-03-03T00:00:00.000Z",
 		})
-		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["openai"])
+		const agentsSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["opencode"])
 		const args = {
 			category: "deep",
 			prompt: "test prompt",
