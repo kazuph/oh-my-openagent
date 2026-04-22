@@ -157,12 +157,16 @@ describe("createBuiltinSkills", () => {
 		// #then
 		expect(reviewWork).toBeDefined()
 		expect(reviewWork!.description).toContain("review")
-		expect(reviewWork!.template).toContain("5-Agent Parallel Review Orchestrator")
+		expect(reviewWork!.description).toContain("local review lanes")
+		expect(reviewWork!.template).toContain("5-Lane Local Review Orchestrator")
 		expect(reviewWork!.template).toContain("Goal & Constraint Verification")
 		expect(reviewWork!.template).toContain("QA")
 		expect(reviewWork!.template).toContain("Code Quality")
 		expect(reviewWork!.template).toContain("Security")
 		expect(reviewWork!.template).toContain("Context Mining")
+		expect(reviewWork!.template).toContain(`skill("another-ai")`)
+		expect(reviewWork!.template).not.toContain(`subagent_type="oracle"`)
+		expect(reviewWork!.template).not.toContain("run_in_background=true")
 	})
 
 	test("ai-slop-remover skill has correct structure", () => {

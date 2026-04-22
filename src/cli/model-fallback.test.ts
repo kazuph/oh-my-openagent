@@ -343,18 +343,18 @@ describe("generateModelConfig", () => {
   })
 
   describe("Sisyphus agent special cases", () => {
-    test("Sisyphus is created when subscription providers are available (Copilot)", () => {
-      // #given Copilot is available (post-migration subscription routing)
+    test("Sisyphus is omitted when only subscription providers are available (Copilot)", () => {
+      // #given Copilot is available
       const config = createConfig({ hasCopilot: true, isMax20: true })
 
       // #when
       const result = generateModelConfig(config)
 
-      // #then — first entry in sisyphus chain routes through github-copilot
-      expect(result.agents?.sisyphus?.model).toBe("github-copilot/claude-opus-4.6")
+      // #then — sisyphus now relies on /model or system default
+      expect(result.agents?.sisyphus).toBeUndefined()
     })
 
-    test("Sisyphus is created when multiple subscription providers are available", () => {
+    test("Sisyphus is omitted when multiple subscription providers are available", () => {
       // #given
       const config = createConfig({
         hasCopilot: true,
@@ -368,7 +368,7 @@ describe("generateModelConfig", () => {
       const result = generateModelConfig(config)
 
       // #then
-      expect(result.agents?.sisyphus?.model).toBe("github-copilot/claude-opus-4.6")
+      expect(result.agents?.sisyphus).toBeUndefined()
     })
   })
 

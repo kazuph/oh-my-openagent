@@ -592,25 +592,6 @@ exports[`generateModelConfig fallback providers uses OpenCode Zen models when on
       "model": "opencode/claude-opus-4-6",
       "variant": "max",
     },
-    "sisyphus": {
-      "fallback_models": [
-        {
-          "model": "opencode/kimi-k2.5",
-        },
-        {
-          "model": "opencode/gpt-5.4",
-          "variant": "medium",
-        },
-        {
-          "model": "opencode/glm-5",
-        },
-        {
-          "model": "opencode/big-pickle",
-        },
-      ],
-      "model": "opencode/claude-opus-4-6",
-      "variant": "max",
-    },
     "sisyphus-junior": {
       "fallback_models": [
         {
@@ -817,25 +798,6 @@ exports[`generateModelConfig fallback providers uses OpenCode Zen models with is
       "model": "opencode/claude-opus-4-6",
       "variant": "max",
     },
-    "sisyphus": {
-      "fallback_models": [
-        {
-          "model": "opencode/kimi-k2.5",
-        },
-        {
-          "model": "opencode/gpt-5.4",
-          "variant": "medium",
-        },
-        {
-          "model": "opencode/glm-5",
-        },
-        {
-          "model": "opencode/big-pickle",
-        },
-      ],
-      "model": "opencode/claude-opus-4-6",
-      "variant": "max",
-    },
     "sisyphus-junior": {
       "fallback_models": [
         {
@@ -1037,16 +999,6 @@ exports[`generateModelConfig fallback providers uses GitHub Copilot models when 
       "model": "github-copilot/claude-opus-4.6",
       "variant": "max",
     },
-    "sisyphus": {
-      "fallback_models": [
-        {
-          "model": "github-copilot/gpt-5.4",
-          "variant": "medium",
-        },
-      ],
-      "model": "github-copilot/claude-opus-4.6",
-      "variant": "max",
-    },
     "sisyphus-junior": {
       "fallback_models": [
         {
@@ -1223,16 +1175,6 @@ exports[`generateModelConfig fallback providers uses GitHub Copilot models with 
       "model": "github-copilot/claude-opus-4.6",
       "variant": "max",
     },
-    "sisyphus": {
-      "fallback_models": [
-        {
-          "model": "github-copilot/gpt-5.4",
-          "variant": "medium",
-        },
-      ],
-      "model": "github-copilot/claude-opus-4.6",
-      "variant": "max",
-    },
     "sisyphus-junior": {
       "fallback_models": [
         {
@@ -1360,9 +1302,6 @@ exports[`generateModelConfig fallback providers uses ZAI model for librarian whe
     "prometheus": {
       "model": "opencode/gpt-5-nano",
     },
-    "sisyphus": {
-      "model": "zai-coding-plan/glm-5",
-    },
     "sisyphus-junior": {
       "model": "opencode/gpt-5-nano",
     },
@@ -1420,9 +1359,6 @@ exports[`generateModelConfig fallback providers uses ZAI model for librarian wit
     },
     "prometheus": {
       "model": "opencode/gpt-5-nano",
-    },
-    "sisyphus": {
-      "model": "zai-coding-plan/glm-5",
     },
     "sisyphus-junior": {
       "model": "opencode/gpt-5-nano",
@@ -1537,25 +1473,6 @@ exports[`generateModelConfig mixed provider scenarios uses Claude + OpenCode Zen
         },
         {
           "model": "opencode/gemini-3.1-pro",
-        },
-      ],
-      "model": "opencode/claude-opus-4-6",
-      "variant": "max",
-    },
-    "sisyphus": {
-      "fallback_models": [
-        {
-          "model": "opencode/kimi-k2.5",
-        },
-        {
-          "model": "opencode/gpt-5.4",
-          "variant": "medium",
-        },
-        {
-          "model": "opencode/glm-5",
-        },
-        {
-          "model": "opencode/big-pickle",
         },
       ],
       "model": "opencode/claude-opus-4-6",
@@ -1758,16 +1675,6 @@ exports[`generateModelConfig mixed provider scenarios uses OpenAI + Copilot comb
       "model": "github-copilot/claude-opus-4.6",
       "variant": "max",
     },
-    "sisyphus": {
-      "fallback_models": [
-        {
-          "model": "github-copilot/gpt-5.4",
-          "variant": "medium",
-        },
-      ],
-      "model": "github-copilot/claude-opus-4.6",
-      "variant": "max",
-    },
     "sisyphus-junior": {
       "fallback_models": [
         {
@@ -1892,9 +1799,6 @@ exports[`generateModelConfig mixed provider scenarios uses Claude + ZAI combinat
     },
     "prometheus": {
       "model": "opencode/gpt-5-nano",
-    },
-    "sisyphus": {
-      "model": "zai-coding-plan/glm-5",
     },
     "sisyphus-junior": {
       "model": "opencode/gpt-5-nano",
@@ -2143,36 +2047,6 @@ exports[`generateModelConfig mixed provider scenarios uses all fallback provider
         },
         {
           "model": "opencode/gemini-3.1-pro",
-        },
-      ],
-      "model": "github-copilot/claude-opus-4.6",
-      "variant": "max",
-    },
-    "sisyphus": {
-      "fallback_models": [
-        {
-          "model": "opencode/claude-opus-4-6",
-          "variant": "max",
-        },
-        {
-          "model": "opencode/kimi-k2.5",
-        },
-        {
-          "model": "github-copilot/gpt-5.4",
-          "variant": "medium",
-        },
-        {
-          "model": "opencode/gpt-5.4",
-          "variant": "medium",
-        },
-        {
-          "model": "zai-coding-plan/glm-5",
-        },
-        {
-          "model": "opencode/glm-5",
-        },
-        {
-          "model": "opencode/big-pickle",
         },
       ],
       "model": "github-copilot/claude-opus-4.6",
@@ -2539,36 +2413,6 @@ exports[`generateModelConfig mixed provider scenarios uses all providers togethe
       "model": "github-copilot/claude-opus-4.6",
       "variant": "max",
     },
-    "sisyphus": {
-      "fallback_models": [
-        {
-          "model": "opencode/claude-opus-4-6",
-          "variant": "max",
-        },
-        {
-          "model": "opencode/kimi-k2.5",
-        },
-        {
-          "model": "github-copilot/gpt-5.4",
-          "variant": "medium",
-        },
-        {
-          "model": "opencode/gpt-5.4",
-          "variant": "medium",
-        },
-        {
-          "model": "zai-coding-plan/glm-5",
-        },
-        {
-          "model": "opencode/glm-5",
-        },
-        {
-          "model": "opencode/big-pickle",
-        },
-      ],
-      "model": "github-copilot/claude-opus-4.6",
-      "variant": "max",
-    },
     "sisyphus-junior": {
       "fallback_models": [
         {
@@ -2930,36 +2774,6 @@ exports[`generateModelConfig mixed provider scenarios uses all providers with is
       "model": "github-copilot/claude-opus-4.6",
       "variant": "max",
     },
-    "sisyphus": {
-      "fallback_models": [
-        {
-          "model": "opencode/claude-opus-4-6",
-          "variant": "max",
-        },
-        {
-          "model": "opencode/kimi-k2.5",
-        },
-        {
-          "model": "github-copilot/gpt-5.4",
-          "variant": "medium",
-        },
-        {
-          "model": "opencode/gpt-5.4",
-          "variant": "medium",
-        },
-        {
-          "model": "zai-coding-plan/glm-5",
-        },
-        {
-          "model": "opencode/glm-5",
-        },
-        {
-          "model": "opencode/big-pickle",
-        },
-      ],
-      "model": "github-copilot/claude-opus-4.6",
-      "variant": "max",
-    },
     "sisyphus-junior": {
       "fallback_models": [
         {
@@ -3158,122 +2972,6 @@ exports[`generateModelConfig mixed provider scenarios uses all providers with is
         },
       ],
       "model": "github-copilot/gemini-3-flash-preview",
-    },
-  },
-}
-`;
-
-exports[`generateModelConfig Vercel AI Gateway provider uses vercel/ model strings when only Vercel AI Gateway is available 1`] = `
-{
-  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json",
-  "agents": {
-    "atlas": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "explore": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "librarian": {
-      "model": "vercel/minimax/minimax-m2.7",
-    },
-    "metis": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "momus": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "multimodal-looker": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "oracle": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "prometheus": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "sisyphus-junior": {
-      "model": "opencode/gpt-5-nano",
-    },
-  },
-  "categories": {
-    "deep": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "quick": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "ultrabrain": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "unspecified-high": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "unspecified-low": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "visual-engineering": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "writing": {
-      "model": "opencode/gpt-5-nano",
-    },
-  },
-}
-`;
-
-exports[`generateModelConfig Vercel AI Gateway provider uses vercel/ model strings with isMax20 flag 1`] = `
-{
-  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json",
-  "agents": {
-    "atlas": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "explore": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "librarian": {
-      "model": "vercel/minimax/minimax-m2.7",
-    },
-    "metis": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "momus": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "multimodal-looker": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "oracle": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "prometheus": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "sisyphus-junior": {
-      "model": "opencode/gpt-5-nano",
-    },
-  },
-  "categories": {
-    "deep": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "quick": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "ultrabrain": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "unspecified-high": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "unspecified-low": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "visual-engineering": {
-      "model": "opencode/gpt-5-nano",
-    },
-    "writing": {
-      "model": "opencode/gpt-5-nano",
     },
   },
 }

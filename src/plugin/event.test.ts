@@ -757,7 +757,7 @@ describe("createEventHandler - event forwarding", () => {
 })
 
 describe("createEventHandler - retry dedupe lifecycle", () => {
-	it("re-handles same retry key after session recovers to idle status", async () => {
+	it("keeps retry recovery as a no-op for sisyphus without a fallback chain", async () => {
 		//#given
 		const sessionID = "ses_retry_recovery_rearm"
 		setMainSession(sessionID)
@@ -890,8 +890,8 @@ describe("createEventHandler - retry dedupe lifecycle", () => {
 		}))
 
 		//#then
-		expect(abortCalls).toEqual([sessionID, sessionID])
-		expect(promptCalls).toEqual([sessionID, sessionID])
+		expect(abortCalls).toEqual([])
+		expect(promptCalls).toEqual([])
 	})
 })
 

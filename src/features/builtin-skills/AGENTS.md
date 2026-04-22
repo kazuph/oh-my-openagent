@@ -21,7 +21,7 @@ builtin-skills/
     ├── git-master-sections/  # Git master prompt sections
     ├── playwright.ts         # Playwright + agent-browser + playwright-cli + dev-browser
     ├── frontend-ui-ux.ts     # Frontend UI/UX skill
-    ├── review-work.ts        # 5-agent parallel review orchestrator
+    ├── review-work.ts        # 5-lane local CLI review orchestrator
     └── ai-slop-remover.ts    # AI code smell remover
 ```
 
@@ -35,7 +35,7 @@ builtin-skills/
 | **agent-browser** | (in playwright.ts) | -- | Browser via agent-browser tool |
 | **dev-browser** | 221 | -- | Persistent page state browser |
 | **frontend-ui-ux** | 79 | -- | Design-first UI development |
-| **review-work** | ~500 | -- | 5-agent post-implementation review |
+| **review-work** | ~500 | -- | 5-lane local CLI post-implementation review |
 | **ai-slop-remover** | ~300 | -- | Remove AI code patterns |
 
 ## BROWSER VARIANT SELECTION

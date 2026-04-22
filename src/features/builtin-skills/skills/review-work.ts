@@ -3,534 +3,405 @@ import type { BuiltinSkill } from "../types"
 export const reviewWorkSkill: BuiltinSkill = {
 	name: "review-work",
 	description:
-		"Post-implementation review orchestrator. Launches 5 parallel background sub-agents: Oracle (goal/constraint verification), Oracle (code quality), Oracle (security), unspecified-high (hands-on QA execution), unspecified-high (context mining from GitHub/git/Slack/Notion). All must pass for review to pass. MUST USE after completing any significant implementation work. Triggers: 'review work', 'review my work', 'review changes', 'QA my work', 'verify implementation', 'check my work', 'validate changes', 'post-implementation review'.",
-	template: `# Review Work - 5-Agent Parallel Review Orchestrator
+		"Post-implementation review orchestrator. Runs 5 parallel local review lanes using verified local AI CLIs instead of provider-managed sub-agents, so missing env vars such as CLOUDFLARE_GATEWAY_ID do not block reviews. Uses direct codex, claude, or gemini one-shot commands. Covers goal verification, QA, code quality, security, and context mining. All 5 must pass for review to pass. MUST USE after completing any significant implementation work. Triggers: 'review work', 'review my work', 'review changes', 'QA my work', 'verify implementation', 'check my work', 'validate changes', 'post-implementation review'.",
+	template: `# Review Work - 5-Lane Local Review Orchestrator
 
-Launch 5 specialized sub-agents in parallel to review completed implementation work from every angle. All 5 must pass for the review to pass. If even ONE fails, the review fails.
+Run 5 complementary review lanes in parallel using **local AI CLIs**. Do **not** use provider-managed \`task(...)\` sub-agents for this skill.
 
-The 5 agents cover complementary concerns - together they form a comprehensive review that no single reviewer could match:
+Why: some environments fail immediately when a provider-specific variable such as \`CLOUDFLARE_GATEWAY_ID\` is missing. Review work must still run even when those integrations are unavailable.
 
-| # | Agent | Type | Role | Focus Level |
-|---|-------|------|------|-------------|
-| 1 | Goal Verifier | Oracle | Did we build what was asked? | MAIN |
-| 2 | QA Executor | unspecified-high | Does it actually work? | MAIN |
-| 3 | Code Reviewer | Oracle | Is the code well-written? | MAIN |
-| 4 | Security Auditor | Oracle | Is it secure? | SUB |
-| 5 | Context Miner | unspecified-high | Did we miss any context? | MAIN |
+## Review Lanes
+
+| # | Lane | Primary question | Preferred runner type |
+|---|------|------------------|-----------------------|
+| 1 | Goal & Constraint Verification | Did we build what was asked, within the stated rules? | Any local reviewer |
+| 2 | QA via App Execution | Does the implementation actually work when run? | Tool-capable local reviewer |
+| 3 | Code Quality Review | Is the code correct, maintainable, and consistent? | Any local reviewer |
+| 4 | Security Review | Did the changes introduce vulnerabilities? | Any local reviewer |
+| 5 | Context Mining | Did we miss relevant history, docs, issues, or neighboring code? | Tool-capable local reviewer |
+
+All 5 lanes must pass for the review to pass. If even one lane fails, the overall review fails.
+
+---
+
+## Hard Rules
+
+- Never require Cloudflare Gateway or any provider-only environment variable just to run review-work.
+- Never launch provider-managed background sub-agents with \`task(...)\` for this skill.
+- Use only verified direct local CLIs:
+  - \`command codex ... exec\`
+  - \`CLAUDECODE= command claude --dangerously-skip-permissions --print\`
+  - \`gemini --approval-mode=yolo -o json\`
+- Use non-interactive one-shot execution only. No interactive REPLs.
+- QA and Context Mining lanes should prefer a tool-capable runner (direct \`codex exec --full-auto\`).
+- If no tool-capable runner exists, do that lane yourself with bash/read/search tools and mark confidence accordingly. Do not fail just because a provider integration is missing.
 
 ---
 
 ## Phase 0: Gather Review Context
 
-Before launching agents, collect these inputs. Extract from conversation history first - the user's original request, constraints discussed, and decisions made are usually already in the thread. Only ask if truly missing.
+Extract these inputs from the conversation and repository before launching lanes:
 
-<required_inputs>
+- **GOAL**: The original user objective.
+- **CONSTRAINTS**: Requirements, non-goals, API contracts, coding rules, UX requirements, compatibility constraints.
+- **BACKGROUND**: Why this work was needed, related decisions, linked issues, or prior discussion.
+- **CHANGED_FILES**: Collect via \`git diff --name-only\`.
+- **DIFF**: Collect via \`git diff\`.
+- **FILE_CONTENTS**: Read full changed files plus neighboring files that show existing patterns.
+- **RUN_COMMAND**: Determine how to start the app or run the relevant checks.
 
-- **GOAL**: The original objective. What was the user trying to achieve? Pull from the initial request in this conversation.
-- **CONSTRAINTS**: Rules, requirements, or limitations. Tech stack restrictions, performance targets, API contracts, design patterns to follow, backward compatibility needs.
-- **BACKGROUND**: Why this work was needed. Business context, user stories, related systems, prior decisions that informed the approach.
-- **CHANGED_FILES**: Auto-collect via \`git diff --name-only HEAD~1\` or against the appropriate base (branch point, specific commit).
-- **DIFF**: Auto-collect via \`git diff HEAD~1\` or against the appropriate base.
-- **FILE_CONTENTS**: Read the full content of each changed file (not just the diff). Oracle agents cannot read files - they need full context in the prompt.
-- **RUN_COMMAND**: How to start/run the application. Check \`package.json\` scripts, \`Makefile\`, \`docker-compose.yml\`, or ask the user.
+Prefer conversation history first. Only ask the user if a critical detail is truly missing.
 
-</required_inputs>
+---
 
+## Phase 1: Load CLI Runner Rules
 
-**NEVER CHECKOUT A PR BRANCH IN THE MAIN WORKTREE. ALWAYS CREATE A NEW GIT WORKTREE (\`git worktree add\`) AND WORK THERE. THIS PREVENTS CONTAMINATING THE USER'S WORKING DIRECTORY WITH UNRELATED BRANCH STATE.**
+Invoke \`skill("another-ai")\` once if available, then follow its direct CLI execution rules:
 
-**Auto-collection sequence:**
+- direct CLI invocation, no wrapper scripts required
+- codex with \`--skip-git-repo-check\`
+- codex output captured with \`-o\`
+- gemini output captured with \`-o json | jq -r '.response'\`
+- claude nested call with \`CLAUDECODE=\`
+
+If \`another-ai\` is unavailable, still use the same direct command patterns below.
+
+---
+
+## Phase 2: Detect Available Local Reviewers
+
+Check which runners exist before assigning lanes:
 
 \`\`\`bash
-# 1. Get changed files
-git diff --name-only HEAD~1  # or: git diff --name-only main...HEAD
-
-# 2. Get diff
-git diff HEAD~1  # or: git diff main...HEAD
-
-# 3. Detect run command
-# Check package.json -> "scripts.dev" or "scripts.start"
-# Check Makefile -> default target
-# Check docker-compose.yml -> services
+for cmd in codex claude gemini; do
+  if command -v "$cmd" >/dev/null 2>&1; then
+    echo "$cmd: yes"
+  else
+    echo "$cmd: no"
+  fi
+done
 \`\`\`
 
-For GOAL, CONSTRAINTS, BACKGROUND - review the full conversation history. The user's original message almost always contains the goal. Constraints often emerge during discussion. If anything critical is ambiguous, ask ONE focused question - not a checklist.
+Use this preference order:
+
+1. **Direct tool-capable CLI**: \`command codex ... exec --full-auto\`
+2. **Direct text-only CLIs**: \`command claude --print\`, \`gemini -o json\`
+
+Lane assignment guidance:
+
+- Lanes 2 and 5 should use a tool-capable runner when possible.
+- Lanes 1, 3, and 4 can use any available local reviewer.
+- Spread work across multiple CLIs when practical, but reliability is more important than diversity.
 
 ---
 
-## Phase 1: Launch 5 Agents
+## Phase 3: Build Shared Context Once
 
-Launch ALL 5 in a single turn. Every agent uses \`run_in_background=true\`. No sequential launches. No waiting between them.
+Create a temp directory and write shared artifacts:
 
-**Oracle agents receive everything in the prompt** (they cannot read files or run commands). Include DIFF + FILE_CONTENTS + all context directly in the prompt text.
+\`\`\`bash
+review_dir=$(mktemp -d -t review-work)
+changed_files_file="$review_dir/changed-files.txt"
+diff_file="$review_dir/diff.patch"
+context_file="$review_dir/shared-context.md"
 
-**unspecified-high agents are autonomous** - they can read files, run commands, and use tools. Give them goals and pointers, not raw content dumps.
+git --no-pager diff --name-only > "$changed_files_file"
+git --no-pager diff > "$diff_file"
+\`\`\`
+
+Write \`$context_file\` with:
+
+- GOAL
+- CONSTRAINTS
+- BACKGROUND
+- RUN_COMMAND
+- changed file list
+- pointers to the most important neighboring files
+
+Then create 5 lane-specific prompt files:
+
+- \`lane-1-goal.md\`
+- \`lane-2-qa.md\`
+- \`lane-3-quality.md\`
+- \`lane-4-security.md\`
+- \`lane-5-context.md\`
+
+Each prompt should include:
+
+1. the lane brief below
+2. the shared context
+3. the changed files list
+4. the diff
+5. any full file contents needed for accurate review
 
 ---
 
-### Agent 1: Goal & Constraint Verification (Oracle) - MAIN
+## Phase 4: Launch 5 Lanes in Parallel
 
-This agent answers: "Did we build exactly what was asked, within the rules we were given?"
+Start all 5 lanes in one shell turn using background jobs and \`wait\`.
+
+### Known-good direct command fallbacks
+
+Use these when wrapper commands are unavailable or undocumented:
+
+\`\`\`bash
+# codex: tool-capable, best default for QA and context mining
+outfile=$(mktemp -t codex-review)
+command codex \
+  --sandbox workspace-write \
+  --config sandbox_workspace_write.network_access=true \
+  --dangerously-bypass-approvals-and-sandbox \
+  exec --skip-git-repo-check --full-auto -o "$outfile" "$(cat "$prompt_file")" >/dev/null 2>&1
+cat "$outfile"
+
+# claude: text-only fallback
+CLAUDECODE= command claude --dangerously-skip-permissions --print "$(cat "$prompt_file")" > "$outfile"
+cat "$outfile"
+
+# gemini: text-only fallback
+/opt/homebrew/bin/mise exec -- gemini --approval-mode=yolo -o json "$(cat "$prompt_file")" 2>/dev/null \
+  | jq -r '.response' > "$outfile"
+cat "$outfile"
+\`\`\`
+
+Use the known-good direct commands above. Do not invent undocumented wrapper commands.
+
+### Launch pattern
+
+\`\`\`bash
+# Example shape - adapt runner per lane
+run_lane lane-1-goal "$review_dir/lane-1-goal.md" > "$review_dir/lane-1.out" &
+pid1=$!
+
+run_lane lane-2-qa "$review_dir/lane-2-qa.md" > "$review_dir/lane-2.out" &
+pid2=$!
+
+run_lane lane-3-quality "$review_dir/lane-3-quality.md" > "$review_dir/lane-3.out" &
+pid3=$!
+
+run_lane lane-4-security "$review_dir/lane-4-security.md" > "$review_dir/lane-4.out" &
+pid4=$!
+
+run_lane lane-5-context "$review_dir/lane-5-context.md" > "$review_dir/lane-5.out" &
+pid5=$!
+
+wait "$pid1" "$pid2" "$pid3" "$pid4" "$pid5"
+\`\`\`
+
+If a lane has no usable CLI runner, execute that lane yourself immediately rather than blocking the full review.
+
+---
+
+## Lane Briefs
+
+Use these reviewer prompts inside the lane-specific prompt files.
+
+### Lane 1: Goal & Constraint Verification
+
+Question: "Did we build exactly what the user asked, within the stated constraints?"
+
+Checklist:
+
+1. Break the goal into explicit and implied requirements.
+2. Mark each requirement as ACHIEVED, PARTIAL, or MISSED.
+3. Verify every stated constraint against concrete code evidence.
+4. Flag scope creep or unnecessary abstraction.
+5. Walk through at least 5 edge cases mentally.
+
+Required output:
 
 \`\`\`
-task(
-  subagent_type="oracle",
-  run_in_background=true,
-  load_skills=[],
-  description="Verify implementation against original goal and constraints",
-  prompt="""
-<review_type>GOAL & CONSTRAINT VERIFICATION</review_type>
-
-<original_goal>
-{GOAL - paste the user's original request and any clarifications}
-</original_goal>
-
-<constraints>
-{CONSTRAINTS - every rule, requirement, or limitation discussed}
-</constraints>
-
-<background>
-{BACKGROUND - why this work was needed, broader context}
-</background>
-
-<changed_files>
-{CHANGED_FILES - list of modified file paths}
-</changed_files>
-
-<file_contents>
-{FILE_CONTENTS - full content of every changed file, clearly delimited per file}
-</file_contents>
-
-<diff>
-{DIFF - the actual git diff}
-</diff>
-
-Review whether this implementation correctly and completely achieves the stated goal within the given constraints. Be obsessively thorough - the point of this review is to catch what the implementer missed.
-
-REVIEW CHECKLIST:
-
-1. **Goal Completeness**: Break the goal into every sub-requirement (explicit AND implied). For each, mark ACHIEVED / MISSED / PARTIAL. Missing even one implied requirement that a reasonable engineer would have addressed = PARTIAL at minimum.
-
-2. **Constraint Compliance**: List every constraint. For each, verify compliance with specific code evidence. A constraint violated = automatic FAIL.
-
-3. **Requirement Gaps**: Requirements the user clearly wanted but didn't spell out. Things implied by the goal or background that a thoughtful engineer would have included.
-
-4. **Over-Engineering**: Anything added that wasn't requested - unnecessary abstractions, extra features, premature optimizations, speculative generality. Flag these as scope creep.
-
-5. **Edge Cases**: Given the goal, what inputs or scenarios would break this? Trace through at least 5 edge cases mentally.
-
-6. **Behavioral Correctness**: Walk through the code logic for 3+ representative scenarios. Does the code actually produce the expected behavior in each case?
-
-OUTPUT FORMAT:
 <verdict>PASS or FAIL</verdict>
 <confidence>HIGH / MEDIUM / LOW</confidence>
 <summary>1-3 sentence overall assessment</summary>
 <goal_breakdown>
-  For each sub-requirement:
-  - [ACHIEVED/MISSED/PARTIAL] Requirement description
-  - Evidence: specific code reference or gap
+- [ACHIEVED/PARTIAL/MISSED] Requirement
+- Evidence: ...
 </goal_breakdown>
-<constraint_compliance>
-  For each constraint:
-  - [ACHIEVED/MISSED] Constraint description - evidence
-</constraint_compliance>
-<findings>
-  - [PASS/FAIL/WARN] Category: Description
-  - File: path (line range if applicable)
-  - Evidence: specific code or logic reference
-</findings>
-<blocking_issues>Issues that MUST be fixed. Empty if PASS.</blocking_issues>
-""")
+<blocking_issues>Only blocking issues. Empty if PASS.</blocking_issues>
 \`\`\`
 
----
+### Lane 2: QA via App Execution
 
-### Agent 2: QA via App Execution (unspecified-high) - MAIN
+Question: "Does it actually work when run?"
 
-This agent answers: "Does it actually work when you run it?"
+Checklist:
 
-The QA agent follows a structured process: brainstorm scenarios exhaustively first, then self-review and augment, then create a task list, then execute systematically.
+1. Brainstorm scenarios first: happy path, boundaries, error paths, regressions, state transitions, integrations.
+2. Add at least 5 more scenarios after self-review.
+3. Prefer actually running the app, tests, or CLI.
+4. Capture concrete evidence for failures.
+5. If the app cannot be started, report immediate FAIL.
+
+Required output:
 
 \`\`\`
-task(
-  category="unspecified-high",
-  run_in_background=true,
-  load_skills=["playwright", "dev-browser"],
-  description="QA by actually running and using the application",
-  prompt="""
-<review_type>QA - HANDS-ON APP EXECUTION</review_type>
-
-<original_goal>
-{GOAL}
-</original_goal>
-
-<constraints>
-{CONSTRAINTS}
-</constraints>
-
-<changed_files>
-{CHANGED_FILES}
-</changed_files>
-
-<run_command>
-{RUN_COMMAND - how to start the application, or "unknown" if not determined}
-</run_command>
-
-You are a QA engineer. Your job is to RUN the application and verify it works through hands-on testing. You do not review code - you test behavior.
-
-MANDATORY PROCESS (follow in order):
-
-### Step 1: Scenario Brainstorm
-
-Before touching the app, write down EVERY test scenario you can think of. Be exhaustive. Think about:
-
-- **Happy paths**: The primary use cases this implementation enables. What's the main thing the user wanted to do?
-- **Boundary conditions**: Empty inputs, maximum-length inputs, zero values, negative numbers, special characters, unicode, very large datasets.
-- **Error paths**: Invalid inputs, network failures, missing files, permission denied, timeout conditions.
-- **Regression scenarios**: Existing features that touch the same code paths. Things that worked before and must still work.
-- **State transitions**: What happens when you do things out of order? Rapid repeated actions? Concurrent usage?
-- **UX scenarios** (if applicable): Layout on different sizes, keyboard navigation, screen reader compatibility, loading states, error messages.
-- **Integration points**: Does this feature interact with external services, databases, or other modules? Test those boundaries.
-
-Write each scenario as a one-liner with expected behavior. Aim for 15-30 scenarios minimum.
-
-### Step 2: Scenario Augmentation
-
-Review your scenario list with fresh eyes. For each scenario, ask:
-- "What could go wrong here that I haven't considered?"
-- "What would a malicious or careless user do?"
-- "What environmental conditions could affect this?" (disk full, slow network, expired tokens)
-
-Add at least 5 more scenarios from this reflection. Group scenarios by priority: P0 (must pass), P1 (should pass), P2 (nice to pass).
-
-### Step 3: Create Task List
-
-Convert your augmented scenario list into a structured task list (use TaskCreate/TaskUpdate or your todo system). Each task = one test scenario with:
-- Test name
-- Steps to execute
-- Expected result
-- Priority (P0/P1/P2)
-
-### Step 4: Execute Systematically
-
-Work through the task list in priority order (P0 first). For each test:
-
-1. Execute the test steps
-2. Record actual result
-3. Compare with expected result
-4. Mark PASS or FAIL
-5. If FAIL: capture evidence (screenshot, terminal output, error message)
-6. Mark the task complete
-
-**Execution guidance by app type:**
-- **Web app**: Use playwright/dev-browser to navigate, click, fill forms, verify visual output.
-- **CLI tool**: Run commands with various arguments, pipe inputs, check exit codes and output.
-- **Library/SDK**: Write and execute a test script that imports and exercises the public API.
-- **Backend API**: Use curl/httpie to hit endpoints with various payloads, verify response codes and bodies.
-- **Mobile/Desktop**: If not directly runnable, write integration tests and execute them.
-
-If the app cannot be started (build failure), that's an immediate FAIL - no need to continue.
-
-### Step 5: Compile Results
-
-OUTPUT FORMAT:
 <verdict>PASS or FAIL</verdict>
 <confidence>HIGH / MEDIUM / LOW</confidence>
 <summary>1-3 sentence overall assessment</summary>
 <scenario_coverage>
-  Total scenarios: N
-  P0: X tested, Y passed
-  P1: X tested, Y passed
-  P2: X tested, Y passed
+Total scenarios: N
+P0: X tested, Y passed
+P1: X tested, Y passed
+P2: X tested, Y passed
 </scenario_coverage>
-<test_results>
-  For each test:
-  - [PASS/FAIL] Test name (Priority)
-  - Steps: What you did
-  - Expected: What should happen
-  - Actual: What actually happened
-  - Evidence: Screenshot path or terminal output snippet (if FAIL)
-</test_results>
-<blocking_issues>P0 or P1 failures only. Empty if PASS.</blocking_issues>
-""")
+<blocking_issues>P0/P1 failures only. Empty if PASS.</blocking_issues>
 \`\`\`
 
----
+### Lane 3: Code Quality Review
 
-### Agent 3: Code Quality Review (Oracle) - MAIN
+Question: "Is the code well-written, correct, and consistent with the codebase?"
 
-This agent answers: "Is the code well-written, maintainable, and consistent with the codebase?"
+Checklist:
+
+1. Correctness and edge cases
+2. Pattern consistency with neighboring files
+3. Naming and readability
+4. Error handling and logging
+5. Type safety
+6. Performance and coupling
+7. Test quality and API design
+
+Required output:
 
 \`\`\`
-task(
-  subagent_type="oracle",
-  run_in_background=true,
-  load_skills=[],
-  description="Review overall code quality, patterns, and architecture",
-  prompt="""
-<review_type>CODE QUALITY REVIEW</review_type>
-
-<changed_files>
-{CHANGED_FILES}
-</changed_files>
-
-<file_contents>
-{FILE_CONTENTS - full content of changed files AND neighboring files that show existing patterns}
-</file_contents>
-
-<diff>
-{DIFF}
-</diff>
-
-<background>
-{BACKGROUND}
-</background>
-
-You are a senior staff engineer conducting a code review. Your standard: "Would I approve this PR without comments?"
-
-REVIEW DIMENSIONS (examine each):
-
-1. **Correctness**: Logic errors, off-by-one, null/undefined handling, race conditions, resource leaks, unhandled promise rejections.
-
-2. **Pattern Consistency**: Does new code follow the codebase's established patterns? Compare with the neighboring files provided. Introducing a new pattern where one already exists = finding.
-
-3. **Naming & Readability**: Clear variable/function/type names? Self-documenting code? Would another engineer understand this without explanation?
-
-4. **Error Handling**: Errors properly caught, logged, and propagated? No empty catch blocks? No swallowed errors? User-facing errors are helpful?
-
-5. **Type Safety**: Any \`as any\`, \`@ts-ignore\`, \`@ts-expect-error\`? Proper generic usage? Correct type narrowing? (If TypeScript/typed language)
-
-6. **Performance**: N+1 queries? Unnecessary re-renders? Blocking I/O on hot paths? Memory leaks? Unbounded growth?
-
-7. **Abstraction Level**: Right level of abstraction? No copy-paste duplication? But also no premature over-abstraction?
-
-8. **Testing**: New behaviors covered by tests? Tests are meaningful, not just coverage padding? Test names describe scenarios?
-
-9. **API Design**: Public interfaces clean and consistent with existing APIs? Breaking changes flagged?
-
-10. **Tech Debt**: Does this introduce new tech debt? Or create coupling that will be painful to change?
-
-Categorize each finding by severity:
-- **CRITICAL**: Will cause bugs, data loss, or crashes in production
-- **MAJOR**: Significant quality issue that should be fixed before merge
-- **MINOR**: Improvement worth making but not blocking
-- **NITPICK**: Style preference, optional
-
-OUTPUT FORMAT:
 <verdict>PASS or FAIL</verdict>
 <confidence>HIGH / MEDIUM / LOW</confidence>
 <summary>1-3 sentence overall assessment</summary>
 <findings>
-  - [CRITICAL/MAJOR/MINOR/NITPICK] Category: Description
-  - File: path (line range)
-  - Current: what the code does now
-  - Suggestion: how to improve
+- [CRITICAL/MAJOR/MINOR/NITPICK] Category: Description
+- File: path
+- Suggestion: ...
 </findings>
 <blocking_issues>CRITICAL and MAJOR items only. Empty if PASS.</blocking_issues>
-""")
 \`\`\`
 
----
+### Lane 4: Security Review
 
-### Agent 4: Security Review (Oracle) - SUB
+Question: "Did these changes introduce vulnerabilities or risky security regressions?"
 
-This agent answers: "Are there security vulnerabilities in these changes?"
+Checklist:
 
-This is supplementary - it focuses exclusively on security. It does NOT comment on code style, architecture, or functionality unless those directly create a security risk.
+1. Input validation and injection risks
+2. Auth and authorization gaps
+3. Secret handling and data exposure
+4. Unsafe file or network operations
+5. Dependency or supply-chain risks
+6. Error leakage and over-broad permissions
+
+Required output:
 
 \`\`\`
-task(
-  subagent_type="oracle",
-  run_in_background=true,
-  load_skills=[],
-  description="Security-focused review of implementation changes",
-  prompt="""
-<review_type>SECURITY REVIEW (supplementary)</review_type>
-
-<changed_files>
-{CHANGED_FILES}
-</changed_files>
-
-<file_contents>
-{FILE_CONTENTS - full content of changed files}
-</file_contents>
-
-<diff>
-{DIFF}
-</diff>
-
-You are a security engineer. Review this diff exclusively for security vulnerabilities and anti-patterns. Ignore code style, naming, architecture - unless it directly creates a security risk.
-
-SECURITY CHECKLIST:
-
-1. **Input Validation**: User inputs sanitized? SQL injection, XSS, command injection, SSRF vectors?
-2. **Auth & AuthZ**: Authentication checks where needed? Authorization verified for each action? Privilege escalation paths?
-3. **Secrets & Credentials**: Hardcoded secrets, API keys, tokens in code or config? Secrets in logs?
-4. **Data Exposure**: Sensitive data in logs? PII in error messages? Over-exposed API responses?
-5. **Dependencies**: New dependencies added? Known CVEs? Suspicious or unnecessary packages?
-6. **Cryptography**: Proper algorithms? No custom crypto? Secure random? Proper key management?
-7. **File & Path**: Path traversal? Unsafe file operations? Symlink following?
-8. **Network**: CORS configured correctly? Rate limiting? TLS enforced? Certificate validation?
-9. **Error Leakage**: Stack traces exposed to users? Internal details in error responses?
-10. **Supply Chain**: Lockfile updated consistently? Dependency pinning?
-
-OUTPUT FORMAT:
 <verdict>PASS or FAIL</verdict>
 <severity>CRITICAL / HIGH / MEDIUM / LOW / NONE</severity>
 <summary>1-3 sentence overall assessment</summary>
 <findings>
-  - [CRITICAL/HIGH/MEDIUM/LOW] Category: Description
-  - File: path (line range)
-  - Risk: What could an attacker do?
-  - Remediation: Specific fix
+- [CRITICAL/HIGH/MEDIUM/LOW] Category: Description
+- File: path
+- Remediation: ...
 </findings>
 <blocking_issues>CRITICAL and HIGH items only. Empty if PASS.</blocking_issues>
-""")
 \`\`\`
 
----
+### Lane 5: Context Mining
 
-### Agent 5: Context Mining (unspecified-high) - MAIN
+Question: "Did we miss any repo history, docs, issues, or related code that should have informed the implementation?"
 
-This agent answers: "Did we miss any context that should have informed this implementation?"
+Search guidance:
+
+1. Git history: \`git log\`, \`git blame\`, recent commits for changed files
+2. GitHub: issues, PRs, comments if \`gh\` is available
+3. Docs and READMEs
+4. Related tests, config, imports, and sibling modules
+5. TODO, FIXME, migration, and deprecation notes
+
+Required output:
 
 \`\`\`
-task(
-  category="unspecified-high",
-  run_in_background=true,
-  load_skills=["git-master"],
-  description="Mine all accessible contexts for missed requirements or background knowledge",
-  prompt="""
-<review_type>CONTEXT MINING - MISSED REQUIREMENTS & BACKGROUND</review_type>
-
-<original_goal>
-{GOAL}
-</original_goal>
-
-<constraints>
-{CONSTRAINTS}
-</constraints>
-
-<changed_files>
-{CHANGED_FILES}
-</changed_files>
-
-<background>
-{BACKGROUND}
-</background>
-
-You are an investigator. Your mission: search every accessible information source to find context that should have informed this implementation but might have been missed. The question: "Is there something we should have known but didn't?"
-
-SOURCES TO SEARCH (use every available tool):
-
-1. **Git History** (ALWAYS search):
-   - \`git log --oneline -20 -- {each changed file}\` - recent changes and their reasons
-   - \`git blame {critical sections}\` - who wrote what and when
-   - \`git log --all --grep="{keywords from goal}"\` - related commits
-   - Look for reverted commits, TODO/FIXME/HACK comments in history
-
-2. **GitHub** (if \`gh\` CLI available):
-   - \`gh issue list --search "{keywords}"\` - related open/closed issues
-   - \`gh pr list --search "{keywords}" --state all\` - related PRs and their review comments
-   - Check if any issue is specifically linked to this work
-   - Look at review comments on past PRs touching these files
-
-3. **Communication Channels** (if MCP tools available):
-   - Slack: search for messages mentioning the feature, file names, or related keywords
-   - Notion: search for design docs, RFCs, ADRs related to this feature
-   - Discord: relevant discussions
-
-4. **Codebase Cross-References** (ALWAYS search):
-   - Files that import or reference the changed modules
-   - Tests that might need updating due to behavior changes
-   - Documentation (README, docs/, comments) that references changed behavior
-   - Config files that might need corresponding updates
-   - Related features in the same domain
-
-WHAT TO LOOK FOR:
-
-- Requirements mentioned in issues/PRs that the implementation misses
-- Past decisions explaining WHY code was written a certain way - and whether new changes respect those reasons
-- Related systems or features affected by these changes
-- Warnings from previous developers (PR review comments, inline TODOs, commit messages)
-- Migration or deprecation notes that affect the changed code
-- Design decisions documented outside the codebase (Notion, Slack, ADRs)
-
-OUTPUT FORMAT:
 <verdict>PASS or FAIL</verdict>
 <confidence>HIGH / MEDIUM / LOW</confidence>
 <summary>1-3 sentence overall assessment</summary>
 <sources_searched>
-  - [SEARCHED/SKIPPED] Source name - what was searched (or why it wasn't accessible)
+- [SEARCHED/SKIPPED] Source - details
 </sources_searched>
 <discovered_context>
-  For each discovery:
-  - Source: Where found (git commit abc123, GitHub issue #42, Slack message, etc.)
-  - Finding: What was found
-  - Relevance: How it relates to the current work
-  - Impact: [BLOCKING / IMPORTANT / FYI]
+- Source: ...
+- Finding: ...
+- Impact: BLOCKING / IMPORTANT / FYI
 </discovered_context>
-<missed_requirements>Requirements the implementation should address but doesn't. Empty if none.</missed_requirements>
-<blocking_issues>BLOCKING items only. Empty if PASS.</blocking_issues>
-""")
+<blocking_issues>Only BLOCKING items. Empty if PASS.</blocking_issues>
 \`\`\`
 
 ---
 
-## Phase 2: Wait & Collect
+## Phase 5: Collect Results
 
-After launching all 5 agents in one turn, **end your response**. Wait for system notifications as each agent completes.
+After all 5 lanes complete:
 
-As each completes, collect via \`background_output(task_id="...")\`. Store each verdict:
+1. Read every output file.
+2. Extract the verdict, confidence/severity, summary, and blocking issues.
+3. If a lane crashed because a runner was missing, rerun that lane with the next fallback runner.
+4. Only treat the review as infrastructure-blocked if **no local CLI path exists at all**.
 
-| Agent | Verdict | Notes |
-|-------|---------|-------|
-| 1. Goal Verification | pending | - |
-| 2. QA Execution | pending | - |
-| 3. Code Quality | pending | - |
-| 4. Security | pending | - |
-| 5. Context Mining | pending | - |
+Track results in a table:
 
-Do NOT deliver the final report until ALL 5 have completed.
+| # | Review Area | Runner | Verdict | Notes |
+|---|-------------|--------|---------|-------|
+| 1 | Goal & Constraint Verification | pending | pending | - |
+| 2 | QA via App Execution | pending | pending | - |
+| 3 | Code Quality Review | pending | pending | - |
+| 4 | Security Review | pending | pending | - |
+| 5 | Context Mining | pending | pending | - |
 
 ---
 
-## Phase 3: Deliver Verdict
+## Phase 6: Deliver Verdict
 
-<verdict_logic>
+Verdict logic:
 
-ALL 5 agents returned PASS → **REVIEW PASSED**
-ANY agent returned FAIL → **REVIEW FAILED - criteria not met**
+- ALL 5 lanes PASS -> **REVIEW PASSED**
+- ANY lane FAILS -> **REVIEW FAILED**
 
-</verdict_logic>
-
-Compile the final report in this format:
+Final report format:
 
 \`\`\`markdown
 # Review Work - Final Report
 
 ## Overall Verdict: PASSED / FAILED
 
-| # | Review Area | Agent Type | Verdict | Confidence |
-|---|------------|------------|---------|------------|
-| 1 | Goal & Constraint Verification | Oracle | PASS/FAIL | HIGH/MED/LOW |
-| 2 | QA Execution | unspecified-high | PASS/FAIL | HIGH/MED/LOW |
-| 3 | Code Quality | Oracle | PASS/FAIL | HIGH/MED/LOW |
-| 4 | Security (supplementary) | Oracle | PASS/FAIL | Severity |
-| 5 | Context Mining | unspecified-high | PASS/FAIL | HIGH/MED/LOW |
+| # | Review Area | Runner | Verdict | Confidence / Severity |
+|---|-------------|--------|---------|------------------------|
+| 1 | Goal & Constraint Verification | <runner> | PASS/FAIL | HIGH/MED/LOW |
+| 2 | QA via App Execution | <runner> | PASS/FAIL | HIGH/MED/LOW |
+| 3 | Code Quality Review | <runner> | PASS/FAIL | HIGH/MED/LOW |
+| 4 | Security Review | <runner> | PASS/FAIL | CRITICAL/HIGH/MEDIUM/LOW/NONE |
+| 5 | Context Mining | <runner> | PASS/FAIL | HIGH/MED/LOW |
+
+## Executive Summary
+
+2-4 sentences summarizing whether the implementation is ready and why.
 
 ## Blocking Issues
-[Aggregated from all agents - deduplicated, prioritized]
 
-## Key Findings
-[Top 5-10 most important findings across all agents, grouped by theme]
+List every blocking issue from failing lanes. If none, say "None."
 
-## Recommendations
-[If FAILED: exactly what to fix, in priority order]
-[If PASSED: non-blocking suggestions worth considering]
+## Lane Details
+
+### 1. Goal & Constraint Verification
+<summary + findings>
+
+### 2. QA via App Execution
+<summary + scenario coverage>
+
+### 3. Code Quality Review
+<summary + findings>
+
+### 4. Security Review
+<summary + findings>
+
+### 5. Context Mining
+<summary + discoveries>
 \`\`\`
 
-If FAILED - be specific. The user should know exactly what to fix and in what order. No vague "consider improving X" - state the problem, the file, and the fix.
-
-If PASSED - keep it short. Highlight any non-blocking suggestions, but don't turn a passing review into a lecture.`,
+Clean up temp files when finished.`
 }
