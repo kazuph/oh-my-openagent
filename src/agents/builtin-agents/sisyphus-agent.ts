@@ -60,7 +60,12 @@ export function maybeCreateSisyphusConfig(input: {
     systemDefaultModel,
   })
 
-  if (isFirstRunNoCache && !sisyphusOverride?.model && !uiSelectedModel) {
+  if (
+    isFirstRunNoCache &&
+    !sisyphusOverride?.model &&
+    !uiSelectedModel &&
+    sisyphusRequirement?.fallbackChain?.length
+  ) {
     sisyphusResolution = getFirstFallbackModel(sisyphusRequirement)
   }
 

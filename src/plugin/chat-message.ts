@@ -5,7 +5,6 @@ import { isModelCacheAvailable, log } from "../shared"
 import { getAgentConfigKey } from "../shared/agent-display-names"
 import { getSessionModel, setSessionModel } from "../shared/session-model-state"
 import { getMainSessionID, setSessionAgent, subagentSessions } from "../features/claude-code-session-state"
-import { applyUltraworkModelOverrideOnMessage } from "./ultrawork-model-override"
 import { NATIVE_LOOP_TRIGGERED_FLAG } from "./command-execute-before"
 import { parseRalphLoopArguments } from "../hooks/ralph-loop/command-arguments"
 
@@ -296,14 +295,5 @@ export function createChatMessageHandler(args: {
         hooks.ralphLoop.cancelLoop(input.sessionID)
       }
     }
-
-    await applyUltraworkModelOverrideOnMessage(
-      pluginConfig,
-      input.agent,
-      output,
-      pluginContext.client.tui,
-      input.sessionID,
-      pluginContext.client,
-    )
   }
 }

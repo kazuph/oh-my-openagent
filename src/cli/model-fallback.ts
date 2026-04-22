@@ -112,7 +112,7 @@ export function generateModelConfig(config: InstallConfig): GeneratedOmoConfig {
       $schema: SCHEMA_URL,
       agents: Object.fromEntries(
         Object.entries(CLI_AGENT_MODEL_REQUIREMENTS)
-          .filter(([role, req]) => !(role === "sisyphus" && req.requiresAnyModel))
+          .filter(([role]) => role !== "sisyphus")
           .map(([role]) => [role, { model: ULTIMATE_FALLBACK }])
       ),
       categories: Object.fromEntries(
@@ -155,6 +155,9 @@ export function generateModelConfig(config: InstallConfig): GeneratedOmoConfig {
 
     if (role === "sisyphus") {
       const fallbackChain = getSisyphusFallbackChain()
+      if (fallbackChain.length === 0) {
+        continue
+      }
       if (req.requiresAnyModel && !isAnyFallbackEntryAvailable(fallbackChain, avail)) {
         continue
       }

@@ -21,26 +21,11 @@ export type ModelRequirement = {
 // moonshotai*, firmware, ollama-cloud, aihubmix, vercel, venice) were
 // removed on 2026-04-17. Subscription-only routing.
 // See src/features/provider-allowlist for the enforcement guard.
-// When a category/agent needs Claude/Gemini/Codex capability beyond what
-// these chains provide, the subagent must shell out via Bash to
-// `claude -p`, `gemini`, `copilot -p`, or `opencode run`.
 
 export const AGENT_MODEL_REQUIREMENTS: Record<string, ModelRequirement> = {
   sisyphus: {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-opus-4-6",
-        variant: "max",
-      },
-      { providers: ["opencode-go"], model: "kimi-k2.5" },
-      { providers: ["kimi-for-coding"], model: "k2p5" },
-      { providers: ["opencode"], model: "kimi-k2.5" },
-      { providers: ["github-copilot", "opencode"], model: "gpt-5.4", variant: "medium" },
-      { providers: ["zai-coding-plan", "opencode"], model: "glm-5" },
-      { providers: ["opencode"], model: "big-pickle" },
-    ],
-    requiresAnyModel: true,
+    fallbackChain: [],
+    requiresAnyModel: false,
   },
   hephaestus: {
     fallbackChain: [

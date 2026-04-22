@@ -65,7 +65,7 @@ describe("createEventHandler - model fallback", () => {
     _resetForTesting()
   })
 
-  test("triggers retry prompt for assistant message.updated APIError payloads (headless resume)", async () => {
+  test("does not trigger retry prompt for sisyphus assistant message.updated APIError payloads", async () => {
     //#given
     const sessionID = "ses_message_updated_fallback"
     const modelFallback = createModelFallbackHook()
@@ -103,11 +103,11 @@ describe("createEventHandler - model fallback", () => {
     })
 
     //#then
-    expect(abortCalls).toEqual([sessionID])
-    expect(promptCalls).toEqual([sessionID])
+    expect(abortCalls).toEqual([])
+    expect(promptCalls).toEqual([])
   })
 
-  test("triggers retry prompt for nested model error payloads", async () => {
+  test("does not trigger retry prompt for sisyphus nested model error payloads", async () => {
     //#given
     const sessionID = "ses_main_fallback_nested"
     setMainSession(sessionID)
@@ -134,11 +134,11 @@ describe("createEventHandler - model fallback", () => {
     })
 
     //#then
-    expect(abortCalls).toEqual([sessionID])
-    expect(promptCalls).toEqual([sessionID])
+    expect(abortCalls).toEqual([])
+    expect(promptCalls).toEqual([])
   })
 
-  test("triggers retry prompt on session.status retry events and applies fallback", async () => {
+  test("does not apply session.status fallback for sisyphus without a chain", async () => {
     //#given
     const sessionID = "ses_status_retry_fallback"
     setMainSession(sessionID)
@@ -218,19 +218,14 @@ describe("createEventHandler - model fallback", () => {
       output,
     )
 
-    //#then - first sisyphus fallback entry after the denied anthropic provider
-    // is github-copilot/claude-opus-4-6 (max variant). The legacy anthropic
-    // chain was stripped by the 2026-04-17 subscription-only purge.
-    expect(abortCalls).toEqual([sessionID])
-    expect(promptCalls).toEqual([sessionID])
-    expect(output.message["model"]).toMatchObject({
-      providerID: "github-copilot",
-      modelID: "claude-opus-4.6",
-    })
-    expect(output.message["variant"]).toBe("max")
+    //#then
+    expect(abortCalls).toEqual([])
+    expect(promptCalls).toEqual([])
+    expect(output.message["model"]).toBeUndefined()
+    expect(output.message["variant"]).toBeUndefined()
   })
 
-  test("does not spam abort/prompt when session.status retry countdown updates", async () => {
+  test("keeps session.status retry countdown updates as no-ops for sisyphus", async () => {
     //#given
     const sessionID = "ses_status_retry_dedup"
     setMainSession(sessionID)
@@ -287,8 +282,8 @@ describe("createEventHandler - model fallback", () => {
     })
 
     //#then
-    expect(abortCalls).toEqual([sessionID])
-    expect(promptCalls).toEqual([sessionID])
+    expect(abortCalls).toEqual([])
+    expect(promptCalls).toEqual([])
   })
 
   test("does not trigger model-fallback from session.status when runtime_fallback is enabled", async () => {
@@ -441,7 +436,7 @@ describe("createEventHandler - model fallback", () => {
     expect(output.message["variant"]).toBeUndefined()
   })
 
-  test("advances main-session fallback chain across repeated session.error retries end-to-end", async () => {
+  test("does not advance a main-session fallback chain for sisyphus", async () => {
     //#given
     const abortCalls: string[] = []
     const promptCalls: string[] = []
@@ -551,24 +546,18 @@ describe("createEventHandler - model fallback", () => {
     //#when - first retry cycle
     const first = await triggerRetryCycle()
 
-    //#then - first sisyphus fallback entry is github-copilot/claude-opus-4-6 max
-    expect(first.message["model"]).toMatchObject({
-      providerID: "github-copilot",
-      modelID: "claude-opus-4.6",
-    })
-    expect(first.message["variant"]).toBe("max")
+    //#then
+    expect(first.message["model"]).toBeUndefined()
+    expect(first.message["variant"]).toBeUndefined()
 
     //#when - second retry cycle
     const second = await triggerRetryCycle()
 
-    //#then - second fallback entry applied (chain advanced to opencode-go/kimi-k2.5)
-    expect(second.message["model"]).toMatchObject({
-      providerID: "opencode-go",
-      modelID: "kimi-k2.5",
-    })
+    //#then
+    expect(second.message["model"]).toBeUndefined()
     expect(second.message["variant"]).toBeUndefined()
-    expect(abortCalls).toEqual([sessionID, sessionID])
-    expect(promptCalls).toEqual([sessionID, sessionID])
+    expect(abortCalls).toEqual([])
+    expect(promptCalls).toEqual([])
     expect(toastCalls.length).toBeGreaterThanOrEqual(0)
   })
 

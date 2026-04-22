@@ -6,7 +6,7 @@ describe("model-resolution check", () => {
     // when: Getting model resolution info
     // then: Returns info for all agents and categories with their provider chains
 
-    it("returns agent requirements with provider chains", async () => {
+    it("returns agent requirements even when fallback chain is intentionally empty", async () => {
       const { getModelResolutionInfo } = await import("./model-resolution")
 
       const info = getModelResolutionInfo()
@@ -14,8 +14,7 @@ describe("model-resolution check", () => {
       // then: Should have agent entries (subscription-only providers post-2026-04-17)
       const sisyphus = info.agents.find((a) => a.name === "sisyphus")
       expect(sisyphus).toBeDefined()
-      expect(sisyphus!.requirement.fallbackChain[0]?.model).toBe("claude-opus-4-6")
-      expect(sisyphus!.requirement.fallbackChain[0]?.providers).toContain("github-copilot")
+      expect(sisyphus!.requirement.fallbackChain).toHaveLength(0)
     })
 
     it("returns category requirements with provider chains", async () => {
@@ -74,7 +73,7 @@ describe("model-resolution check", () => {
       expect(visual!.effectiveResolution).toBe("User override: openai/gpt-5.4")
     })
 
-    it("shows provider fallback when no override exists", async () => {
+    it("shows no fallback chain for sisyphus when no override exists", async () => {
       const { getModelResolutionInfoWithOverrides } = await import("./model-resolution")
 
       // given: No overrides configured
@@ -82,12 +81,11 @@ describe("model-resolution check", () => {
 
       const info = getModelResolutionInfoWithOverrides(mockConfig)
 
-      // then: Should show provider fallback chain
+      // then: Sisyphus now relies on /model or system default instead of its own chain
       const sisyphus = info.agents.find((a) => a.name === "sisyphus")
       expect(sisyphus).toBeDefined()
       expect(sisyphus!.userOverride).toBeUndefined()
-      expect(sisyphus!.effectiveResolution).toContain("Provider fallback:")
-      expect(sisyphus!.effectiveResolution).toContain("github-copilot")
+      expect(sisyphus!.effectiveResolution).toBe("No fallback chain defined")
     })
 
     it("captures user variant for agent when configured", async () => {
@@ -130,17 +128,15 @@ describe("model-resolution check", () => {
       expect(visual!.userVariant).toBe("high")
     })
 
-    it("attaches snapshot-backed capability diagnostics for built-in models", async () => {
+    it("omits capability diagnostics when no built-in sisyphus model is defined", async () => {
       const { getModelResolutionInfoWithOverrides } = await import("./model-resolution")
 
       const info = getModelResolutionInfoWithOverrides({})
       const sisyphus = info.agents.find((a) => a.name === "sisyphus")
 
       expect(sisyphus).toBeDefined()
-      expect(sisyphus!.capabilityDiagnostics).toMatchObject({
-        resolutionMode: "snapshot-backed",
-        snapshot: { source: "bundled-snapshot" },
-      })
+      expect(sisyphus!.effectiveModel).toBe("unknown")
+      expect(sisyphus!.capabilityDiagnostics).toBeUndefined()
     })
 
     it("keeps provider-prefixed overrides for transport while capability diagnostics use pattern aliases", async () => {

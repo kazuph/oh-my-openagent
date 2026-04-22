@@ -21,42 +21,13 @@ describe("AGENT_MODEL_REQUIREMENTS", () => {
     expect(primary.variant).toBe("high")
   })
 
-  test("sisyphus has claude-opus-4-6 as primary with k2p5, kimi-k2.5, gpt-5.4 medium fallbacks", () => {
+  test("sisyphus no longer hardcodes a fallback chain", () => {
     const sisyphus = AGENT_MODEL_REQUIREMENTS["sisyphus"]
 
     expect(sisyphus).toBeDefined()
     expect(sisyphus.fallbackChain).toBeArray()
-    expect(sisyphus.fallbackChain).toHaveLength(7)
-    expect(sisyphus.requiresAnyModel).toBe(true)
-
-    const primary = sisyphus.fallbackChain[0]
-    expect(primary.providers).toEqual(["github-copilot", "opencode"])
-    expect(primary.model).toBe("claude-opus-4-6")
-    expect(primary.variant).toBe("max")
-
-    const second = sisyphus.fallbackChain[1]
-    expect(second.providers).toEqual(["opencode-go"])
-    expect(second.model).toBe("kimi-k2.5")
-
-    const third = sisyphus.fallbackChain[2]
-    expect(third.providers).toEqual(["kimi-for-coding"])
-    expect(third.model).toBe("k2p5")
-
-    const fourth = sisyphus.fallbackChain[3]
-    expect(fourth.model).toBe("kimi-k2.5")
-
-    const fifth = sisyphus.fallbackChain[4]
-    expect(fifth.providers).toContain("github-copilot")
-    expect(fifth.model).toBe("gpt-5.4")
-    expect(fifth.variant).toBe("medium")
-
-    const sixth = sisyphus.fallbackChain[5]
-    expect(sixth.providers[0]).toBe("zai-coding-plan")
-    expect(sixth.model).toBe("glm-5")
-
-    const last = sisyphus.fallbackChain[6]
-    expect(last.providers[0]).toBe("opencode")
-    expect(last.model).toBe("big-pickle")
+    expect(sisyphus.fallbackChain).toHaveLength(0)
+    expect(sisyphus.requiresAnyModel).toBe(false)
   })
 
   test("librarian has valid fallbackChain with opencode-go/minimax-m2.7 as primary", () => {
@@ -255,6 +226,10 @@ describe("AGENT_MODEL_REQUIREMENTS", () => {
       const requirement = AGENT_MODEL_REQUIREMENTS[agent]
       expect(requirement).toBeDefined()
       expect(requirement.fallbackChain).toBeArray()
+      if (agent === "sisyphus") {
+        expect(requirement.fallbackChain).toHaveLength(0)
+        continue
+      }
       expect(requirement.fallbackChain.length).toBeGreaterThan(0)
 
       for (const entry of requirement.fallbackChain) {

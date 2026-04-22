@@ -83,98 +83,32 @@ describe("model fallback hook", () => {
     clearPendingModelFallback("ses_model_fallback_google")
   })
 
-  test("applies pending fallback on chat.message by overriding model", async () => {
+  test("does not arm fallback on chat.message for sisyphus without a chain", async () => {
     //#given
-    const hook = createModelFallbackHook() as unknown as {
-      "chat.message"?: (
-        input: { sessionID: string },
-        output: { message: Record<string, unknown>; parts: Array<{ type: string; text?: string }> },
-      ) => Promise<void>
-    }
-
     const set = setPendingModelFallback(
       "ses_model_fallback_main",
       "Sisyphus - Ultraworker",
       "anthropic",
       "claude-opus-4-6-thinking",
     )
-    expect(set).toBe(true)
-
-    const output = {
-      message: {
-        model: { providerID: "anthropic", modelID: "claude-opus-4-6-thinking" },
-        variant: "max",
-      },
-      parts: [{ type: "text", text: "continue" }],
-    }
-
-    //#when
-    await hook["chat.message"]?.(
-      { sessionID: "ses_model_fallback_main" },
-      output,
-    )
-
-    //#then - first sisyphus fallback entry routes through github-copilot
-    // (anthropic is denied after the 2026-04-17 subscription-only purge)
-    expect(output.message["model"]).toEqual({
-      providerID: "github-copilot",
-      modelID: "claude-opus-4.6",
-    })
+    expect(set).toBe(false)
   })
 
-  test("preserves fallback progression across repeated session.error retries", async () => {
+  test("does not preserve fallback progression for sisyphus when no chain exists", async () => {
     //#given
-    const hook = createModelFallbackHook() as unknown as {
-      "chat.message"?: (
-        input: { sessionID: string },
-        output: { message: Record<string, unknown>; parts: Array<{ type: string; text?: string }> },
-      ) => Promise<void>
-    }
     const sessionID = "ses_model_fallback_main"
 
     expect(
       setPendingModelFallback(sessionID, "Sisyphus - Ultraworker", "anthropic", "claude-opus-4-6-thinking"),
-    ).toBe(true)
-
-    const firstOutput = {
-      message: {
-        model: { providerID: "anthropic", modelID: "claude-opus-4-6-thinking" },
-        variant: "max",
-      },
-      parts: [{ type: "text", text: "continue" }],
-    }
-
-    //#when - first retry is applied
-    await hook["chat.message"]?.({ sessionID }, firstOutput)
-
-    //#then - first entry = github-copilot/claude-opus-4-6 max
-    expect(firstOutput.message["model"]).toEqual({
-      providerID: "github-copilot",
-      modelID: "claude-opus-4.6",
-    })
+    ).toBe(false)
 
     //#when - second error re-arms fallback and should advance to next entry
     expect(
       setPendingModelFallback(sessionID, "Sisyphus - Ultraworker", "github-copilot", "claude-opus-4.6"),
-    ).toBe(true)
-
-    const secondOutput = {
-      message: {
-        model: { providerID: "github-copilot", modelID: "claude-opus-4.6" },
-      },
-      parts: [{ type: "text", text: "continue" }],
-    }
-    await hook["chat.message"]?.({ sessionID }, secondOutput)
-
-    //#then - chain should progress to entry[1]: opencode-go/kimi-k2.5
-    expect(secondOutput.message["model"]).toEqual({
-      providerID: "opencode-go",
-      modelID: "kimi-k2.5",
-    })
-    expect(secondOutput.message["variant"]).toBeUndefined()
+    ).toBe(false)
   })
 
-  test("does not re-arm fallback when one is already pending", () => {
+  test("keeps returning false when sisyphus fallback is attempted repeatedly", () => {
     //#given
     const sessionID = "ses_model_fallback_pending_guard"
     clearPendingModelFallback(sessionID)
@@ -194,7 +128,7 @@ describe("model fallback hook", () => {
     )
 
     //#then
-    expect(firstSet).toBe(true)
+    expect(firstSet).toBe(false)
     expect(secondSet).toBe(false)
     clearPendingModelFallback(sessionID)
   })
@@ -352,19 +286,14 @@ describe("model fallback hook", () => {
     clearPendingModelFallback(sessionID)
   })
 
-  test("shows toast when fallback is applied", async () => {
+  test("does not show toast when sisyphus fallback is disabled", async () => {
     //#given
     const toastCalls: Array<{ title: string; message: string }> = []
-    const hook = createModelFallbackHook({
+    createModelFallbackHook({
       toast: async ({ title, message }) => {
         toastCalls.push({ title, message })
       },
-    }) as unknown as {
-      "chat.message"?: (
-        input: { sessionID: string },
-        output: { message: Record<string, unknown>; parts: Array<{ type: string; text?: string }> },
-      ) => Promise<void>
-    }
+    })
 
     const set = setPendingModelFallback(
       "ses_model_fallback_toast",
@@ -372,22 +301,8 @@ describe("model fallback hook", () => {
       "anthropic",
       "claude-opus-4-6-thinking",
     )
-    expect(set).toBe(true)
-
-    const output = {
-      message: {
-        model: { providerID: "anthropic", modelID: "claude-opus-4-6-thinking" },
-        variant: "max",
-      },
-      parts: [{ type: "text", text: "continue" }],
-    }
-
-    //#when
-    await hook["chat.message"]?.({ sessionID: "ses_model_fallback_toast" }, output)
-
-    //#then
-    expect(toastCalls.length).toBe(1)
-    expect(toastCalls[0]?.title).toBe("Model fallback")
+    expect(set).toBe(false)
+    expect(toastCalls.length).toBe(0)
   })
 
   test("transforms model names for github-copilot provider via fallback chain", async () => {

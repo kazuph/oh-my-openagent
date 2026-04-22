@@ -100,7 +100,7 @@ describe("resolveVariantForModel", () => {
     expect(variant).toBe("high")
   })
 
-  test("returns correct variant for anthropic provider", () => {
+  test("returns undefined for sisyphus models without a hardcoded fallback entry", () => {
     // given
     const config = {} as OhMyOpenCodeConfig
     const model = { providerID: "anthropic", modelID: "claude-opus-4-6" }
@@ -109,7 +109,7 @@ describe("resolveVariantForModel", () => {
     const variant = resolveVariantForModel(config, "sisyphus", model)
 
     // then
-    expect(variant).toBe("max")
+    expect(variant).toBeUndefined()
   })
 
   test("returns correct variant for openai provider (hephaestus agent)", () => {
@@ -124,8 +124,7 @@ describe("resolveVariantForModel", () => {
     expect(variant).toBe("medium")
   })
 
-  test("returns medium for openai/gpt-5.4 in sisyphus chain", () => {
-    // #given openai/gpt-5.4 is now in sisyphus fallback chain with variant medium
+  test("returns undefined for gpt-5.4 when sisyphus has no fallback chain", () => {
     const config = {} as OhMyOpenCodeConfig
     const model = { providerID: "openai", modelID: "gpt-5.4" }
 
@@ -133,7 +132,7 @@ describe("resolveVariantForModel", () => {
     const variant = resolveVariantForModel(config, "sisyphus", model)
 
     // then
-    expect(variant).toBe("medium")
+    expect(variant).toBeUndefined()
   })
 
   test("returns undefined for provider not in chain", () => {

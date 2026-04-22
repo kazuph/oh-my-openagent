@@ -28,7 +28,7 @@ afterEach(() => {
 })
 
 describe("createBuiltinAgents with model overrides", () => {
-  test("Sisyphus with default model has thinking config when all models available", async () => {
+  test("Sisyphus uses system default model when available models exist", async () => {
     // #given
     const fetchSpy = spyOn(shared, "fetchAvailableModels").mockResolvedValue(
       new Set([
@@ -45,7 +45,7 @@ describe("createBuiltinAgents with model overrides", () => {
       const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
 
       // #then
-      expect(agents.sisyphus.model).toBe("anthropic/claude-opus-4-6")
+      expect(agents.sisyphus.model).toBe(TEST_DEFAULT_MODEL)
       expect(agents.sisyphus.thinking).toEqual({ type: "enabled", budgetTokens: 32000 })
       expect(agents.sisyphus.reasoningEffort).toBeUndefined()
     } finally {
@@ -180,7 +180,7 @@ describe("createBuiltinAgents with model overrides", () => {
 
       // #then
       expect(agents.sisyphus).toBeDefined()
-      expect(agents.sisyphus.model).toBe("github-copilot/claude-opus-4.6")
+      expect(agents.sisyphus.model).toBe(systemDefaultModel)
     } finally {
       cacheSpy.mockRestore()
       fetchSpy.mockRestore()
@@ -548,7 +548,7 @@ describe("createBuiltinAgents without systemDefaultModel", () => {
     }
   })
 
-  test("sisyphus created via connected cache fallback when all providers available", async () => {
+  test("sisyphus is omitted without systemDefaultModel or /model", async () => {
     // #given
     const cacheSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue([
       "anthropic", "kimi-for-coding", "opencode", "zai-coding-plan"
@@ -568,8 +568,7 @@ describe("createBuiltinAgents without systemDefaultModel", () => {
       const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, undefined, [], {})
 
       // #then
-      expect(agents.sisyphus).toBeDefined()
-      expect(agents.sisyphus.model).toBe("anthropic/claude-opus-4-6")
+      expect(agents.sisyphus).toBeUndefined()
     } finally {
       cacheSpy.mockRestore()
       fetchSpy.mockRestore()
@@ -889,9 +888,9 @@ describe("Atlas is unaffected by environment context toggle", () => {
   })
 })
 
-describe("createBuiltinAgents with requiresAnyModel gating (sisyphus)", () => {
-  test("sisyphus is created when at least one fallback model is available", async () => {
-    // #given - post-migration: anthropic is denied, use github-copilot subscription
+describe("createBuiltinAgents with explicit model selection for sisyphus", () => {
+  test("sisyphus is created when systemDefaultModel is available", async () => {
+    // #given
     const fetchSpy = spyOn(shared, "fetchAvailableModels").mockResolvedValue(
       new Set(["github-copilot/claude-opus-4-6"])
     )
@@ -907,7 +906,7 @@ describe("createBuiltinAgents with requiresAnyModel gating (sisyphus)", () => {
     }
   })
 
-  test("sisyphus is created on first run when no availableModels or cache exist", async () => {
+  test("sisyphus still uses systemDefaultModel on first run", async () => {
     // #given
     const cacheSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(null)
     const fetchSpy = spyOn(shared, "fetchAvailableModels").mockResolvedValue(new Set())
@@ -918,7 +917,7 @@ describe("createBuiltinAgents with requiresAnyModel gating (sisyphus)", () => {
 
       // #then
       expect(agents.sisyphus).toBeDefined()
-      expect(agents.sisyphus.model).toBe("github-copilot/claude-opus-4.6")
+      expect(agents.sisyphus.model).toBe(TEST_DEFAULT_MODEL)
     } finally {
       cacheSpy.mockRestore()
       fetchSpy.mockRestore()
@@ -943,8 +942,8 @@ describe("createBuiltinAgents with requiresAnyModel gating (sisyphus)", () => {
     }
   })
 
-  test("sisyphus is not created when no fallback model is available and provider not connected", async () => {
-    // #given - only venice/deepseek-v3.2 available, not in sisyphus fallback chain
+  test("sisyphus still uses systemDefaultModel when availableModels do not match", async () => {
+    // #given - model availability does not matter once systemDefaultModel is supplied
     const fetchSpy = spyOn(shared, "fetchAvailableModels").mockResolvedValue(
       new Set(["venice/deepseek-v3.2"])
     )
@@ -955,7 +954,8 @@ describe("createBuiltinAgents with requiresAnyModel gating (sisyphus)", () => {
       const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
 
       // #then
-      expect(agents.sisyphus).toBeUndefined()
+      expect(agents.sisyphus).toBeDefined()
+      expect(agents.sisyphus.model).toBe(TEST_DEFAULT_MODEL)
     } finally {
       fetchSpy.mockRestore()
       cacheSpy.mockRestore()
