@@ -17,11 +17,9 @@ hooks/
 ├── anthropic-context-window-limit-recovery/ # Auto-summarize
 ├── anthropic-effort/            # Reasoning effort level adjustment
 ├── auto-slash-command/         # Detects /command patterns
-├── auto-update-checker/        # Plugin update check
 ├── background-notification/    # OS notification
 ├── category-skill-reminder/    # Reminds of category skills
 ├── claude-code-hooks/          # settings.json compat layer
-├── comment-checker/            # Prevents AI slop
 ├── compaction-context-injector/ # Injects context on compaction
 ├── compaction-todo-preserver/  # Preserves todos through compaction
 ├── delegate-task-retry/        # Retries failed delegations
@@ -70,7 +68,6 @@ hooks/
 | sessionNotification | session.idle | OS notifications on completion |
 | thinkMode | chat.params | Model variant switching (extended thinking) |
 | anthropicContextWindowLimitRecovery | session.error | Multi-strategy context recovery (truncation, compaction) |
-| autoUpdateChecker | session.created | Check npm for plugin updates |
 | agentUsageReminder | chat.message | Remind about available agents |
 | nonInteractiveEnv | chat.message | Adjust behavior for `run` command |
 | interactiveBashSession | tool.execute | Tmux session for interactive tools |
@@ -93,7 +90,6 @@ hooks/
 
 | Hook | Event | Purpose |
 |------|-------|---------|
-| commentChecker | tool.execute.after | Block AI-generated comment patterns |
 | toolOutputTruncator | tool.execute.after | Truncate oversized tool output |
 | directoryAgentsInjector | tool.execute.before | Inject dir AGENTS.md into context |
 | directoryReadmeInjector | tool.execute.before | Inject dir README.md into context |

@@ -1,11 +1,10 @@
 /// <reference types="bun-types" />
 
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from "bun:test"
+import { beforeEach, describe, expect, it, mock } from "bun:test"
 import type { PluginInput } from "@opencode-ai/plugin"
 
 import { OhMyOpenCodeConfigSchema } from "./config/schema/oh-my-opencode-config"
 import { createManagers } from "./create-managers"
-import * as openclawRuntimeDispatch from "./openclaw/runtime-dispatch"
 import { createModelCacheState } from "./plugin-state"
 
 const markServerRunningInProcess = mock(() => {})
@@ -121,18 +120,10 @@ function createContext(directory: string): PluginInput {
 }
 
 describe("createManagers", () => {
-  let dispatchOpenClawEvent: ReturnType<typeof spyOn>
-
   beforeEach(() => {
-    dispatchOpenClawEvent = spyOn(openclawRuntimeDispatch, "dispatchOpenClawEvent")
     markServerRunningInProcess.mockClear()
-    dispatchOpenClawEvent.mockReset()
     backgroundManagerOptions = null
     trackedPaneBySession.clear()
-  })
-
-  afterEach(() => {
-    dispatchOpenClawEvent.mockRestore()
   })
 
   it("#given tmux integration is disabled #when managers are created #then it does not mark the tmux server as running", () => {
@@ -165,16 +156,10 @@ describe("createManagers", () => {
     expect(markServerRunningInProcess).toHaveBeenCalledTimes(1)
   })
 
-  it("#given openclaw is enabled #when the background session-created callback runs #then it dispatches openclaw with the tracked pane id", async () => {
+  it("#given a background session is created #when the callback runs #then tmux tracking is updated", async () => {
     const args = {
       ctx: createContext("/tmp/project"),
-      pluginConfig: OhMyOpenCodeConfigSchema.parse({
-        openclaw: {
-          enabled: true,
-          gateways: {},
-          hooks: {},
-        },
-      }),
+      pluginConfig: OhMyOpenCodeConfigSchema.parse({}),
       tmuxConfig: createTmuxConfig(true),
       modelCacheState: createModelCacheState(),
       backgroundNotificationHookEnabled: false,
@@ -189,15 +174,6 @@ describe("createManagers", () => {
       title: "child task",
     })
 
-    expect(dispatchOpenClawEvent).toHaveBeenCalledTimes(1)
-    expect(dispatchOpenClawEvent).toHaveBeenCalledWith({
-      config: args.pluginConfig.openclaw,
-      rawEvent: "session.created",
-      context: {
-        sessionId: "ses-bg-1",
-        projectPath: "/tmp/project",
-        tmuxPaneId: "%pane-ses-bg-1",
-      },
-    })
+    expect(trackedPaneBySession.get("ses-bg-1")).toBe("%pane-ses-bg-1")
   })
 })

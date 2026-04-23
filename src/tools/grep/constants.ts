@@ -1,10 +1,7 @@
 import { existsSync } from "node:fs"
 import { join, dirname } from "node:path"
 import { spawnSync } from "node:child_process"
-import { getInstalledRipgrepPath, downloadAndInstallRipgrep } from "./downloader"
 import { getDataDir } from "../../shared/data-path"
-import { log } from "../../shared/logger"
-import { PUBLISHED_PACKAGE_NAME } from "../../shared/plugin-identity"
 
 export type GrepBackend = "rg" | "grep"
 
@@ -14,7 +11,6 @@ export interface ResolvedCli {
 }
 
 let cachedCli: ResolvedCli | null = null
-let autoInstallAttempted = false
 
 function findExecutable(name: string): string | null {
   const isWindows = process.platform === "win32"
@@ -72,12 +68,6 @@ export function resolveGrepCli(): ResolvedCli {
     return cachedCli
   }
 
-  const installedRg = getInstalledRipgrepPath()
-  if (installedRg) {
-    cachedCli = { path: installedRg, backend: "rg" }
-    return cachedCli
-  }
-
   const grep = findExecutable("grep")
   if (grep) {
     cachedCli = { path: grep, backend: "grep" }
@@ -86,39 +76,6 @@ export function resolveGrepCli(): ResolvedCli {
 
   cachedCli = { path: "rg", backend: "rg" }
   return cachedCli
-}
-
-export async function resolveGrepCliWithAutoInstall(): Promise<ResolvedCli> {
-  const current = resolveGrepCli()
-
-  if (current.backend === "rg" && current.path !== "rg") {
-    return current
-  }
-
-  if (autoInstallAttempted) {
-    return current
-  }
-
-  autoInstallAttempted = true
-
-  try {
-    const rgPath = await downloadAndInstallRipgrep()
-    cachedCli = { path: rgPath, backend: "rg" }
-    return cachedCli
-  } catch (error) {
-    if (current.backend === "grep") {
-      log(`[${PUBLISHED_PACKAGE_NAME}] Failed to auto-install ripgrep. Falling back to GNU grep.`, {
-        error: error instanceof Error ? error.message : String(error),
-        grep_path: current.path,
-      })
-    } else {
-      log(`[${PUBLISHED_PACKAGE_NAME}] Failed to auto-install ripgrep and GNU grep was not found.`, {
-        error: error instanceof Error ? error.message : String(error),
-      })
-    }
-
-    return current
-  }
 }
 
 export const DEFAULT_MAX_DEPTH = 20

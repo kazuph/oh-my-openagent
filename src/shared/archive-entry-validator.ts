@@ -1,3 +1,4 @@
+import { spawn } from "bun"
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path"
 
 export type ArchiveEntry = {
@@ -79,5 +80,60 @@ export function validateArchiveEntries(entries: ArchiveEntry[], destDir: string)
 				`Unsafe archive entry: ${linkTypeLabel} escapes extraction directory (${entry.linkPath})`
 			)
 		}
+	}
+}
+
+async function listTarEntries(archivePath: string): Promise<ArchiveEntry[]> {
+	const script = [
+		"import json, sys, tarfile",
+		"entries = []",
+		"with tarfile.open(sys.argv[1], 'r:gz') as archive:",
+		"    for member in archive.getmembers():",
+		"        entry_type = 'file'",
+		"        if member.isdir():",
+		"            entry_type = 'directory'",
+		"        elif member.issym():",
+		"            entry_type = 'symlink'",
+		"        elif member.islnk():",
+		"            entry_type = 'hardlink'",
+		"        entries.append({",
+		"            'path': member.name,",
+		"            'type': entry_type,",
+		"            'linkPath': member.linkname or None,",
+		"        })",
+		"print(json.dumps(entries))",
+	].join("\n")
+	const process = spawn(["python3", "-c", script, archivePath], {
+		stdout: "pipe",
+		stderr: "pipe",
+	})
+	const [stdout, stderr, exitCode] = await Promise.all([
+		new Response(process.stdout).text(),
+		new Response(process.stderr).text(),
+		process.exited,
+	])
+
+	if (exitCode !== 0) {
+		throw new Error(stderr.trim() || stdout.trim() || `python3 exited with code ${exitCode}`)
+	}
+
+	return JSON.parse(stdout) as ArchiveEntry[]
+}
+
+export async function extractTarGz(archivePath: string, destDir: string): Promise<void> {
+	validateArchiveEntries(await listTarEntries(archivePath), destDir)
+
+	const process = spawn(["tar", "-xzf", archivePath, "-C", destDir], {
+		stdout: "pipe",
+		stderr: "pipe",
+	})
+	const [stdout, stderr, exitCode] = await Promise.all([
+		new Response(process.stdout).text(),
+		new Response(process.stderr).text(),
+		process.exited,
+	])
+
+	if (exitCode !== 0) {
+		throw new Error(stderr.trim() || stdout.trim() || `tar exited with code ${exitCode}`)
 	}
 }

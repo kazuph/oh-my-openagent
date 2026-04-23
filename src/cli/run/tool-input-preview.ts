@@ -68,22 +68,6 @@ export function formatToolHeader(toolName: string, input: Record<string, unknown
     }
   }
 
-  if (toolName === "websearch_web_search_exa") {
-    const query = str(input.query)
-    return {
-      icon: "◈",
-      title: query ? `Web Search "${query}"` : "Web Search",
-    }
-  }
-
-  if (toolName === "grep_app_searchGitHub") {
-    const query = str(input.query)
-    return {
-      icon: "◇",
-      title: query ? `Code Search "${query}"` : "Code Search",
-    }
-  }
-
   if (toolName === "task") {
     const desc = str(input.description)
     const subagent = str(input.subagent_type)

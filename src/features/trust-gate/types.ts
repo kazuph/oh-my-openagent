@@ -11,7 +11,6 @@ export type ExecutionSurfaceType =
   | "hook" // .claude/settings.json の hooks
   | "mcp" // .mcp.json の command+args
   | "embedded-command" // SKILL.md/command 内の !cmd
-  | "openclaw-gateway" // .opencode config の type:command gateway
   | "local-skill" // project-local skills (.claude/skills, .opencode/skills, .agents/skills)
 
 /**
@@ -93,7 +92,6 @@ export interface ScannerConfig {
   mcpFiles: string[]
   commandFiles: string[]
   skillDirs: string[]
-  openclawConfigs: string[]
 }
 
 /**
@@ -104,7 +102,6 @@ export const DEFAULT_SCANNER_CONFIG: ScannerConfig = {
   mcpFiles: [".mcp.json"],
   commandFiles: [".opencode/command/*.md", ".claude/commands/*.md"],
   skillDirs: [".claude/skills", ".opencode/skills", ".agents/skills"],
-  openclawConfigs: [".opencode/config.json", ".opencode/oh-my-opencode.jsonc"],
 }
 
 /**

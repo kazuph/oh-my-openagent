@@ -15,22 +15,6 @@ const mockContext = {
 }
 
 describe("skill_mcp builtin MCP hint", () => {
-  it("returns builtin hint for context7", async () => {
-    const tool = createSkillMcpTool({
-      manager: new SkillMcpManager(),
-      getLoadedSkills: () => [],
-      getSessionID: () => "session",
-    })
-
-    await expect(
-      tool.execute({ mcp_name: "context7", tool_name: "resolve-library-id" }, mockContext),
-    ).rejects.toThrow(/builtin MCP/)
-
-    await expect(
-      tool.execute({ mcp_name: "context7", tool_name: "resolve-library-id" }, mockContext),
-    ).rejects.toThrow(/context7_resolve-library-id/)
-  })
-
   it("keeps skill-loading hint for unknown MCP names", async () => {
     const tool = createSkillMcpTool({
       manager: new SkillMcpManager(),

@@ -254,7 +254,6 @@ const mockCreateHooks = mock(() => ({
 }))
 const mockCreatePluginDispose = mock(() => async () => {})
 const mockCreatePluginInterface = mock(() => ({}))
-const mockInitializeOpenClaw = mock(async () => {})
 const mockStartTmuxCheck = mock(() => {})
 
 let OhMyOpenCodePlugin: (typeof import("./index"))["default"]
@@ -318,10 +317,6 @@ function installIndexModuleMocks(): void {
     })),
   }))
 
-  mock.module("./openclaw", () => ({
-    initializeOpenClaw: mockInitializeOpenClaw,
-  }))
-
   mock.module("./tools/interactive-bash", () => ({
     interactive_bash: {},
     startBackgroundCheck: mockStartTmuxCheck,
@@ -352,7 +347,6 @@ describe("OhMyOpenCodePlugin", () => {
     mockCreateHooks.mockClear()
     mockCreatePluginDispose.mockClear()
     mockCreatePluginInterface.mockClear()
-    mockInitializeOpenClaw.mockClear()
     mockStartTmuxCheck.mockClear()
   })
 
@@ -360,42 +354,34 @@ describe("OhMyOpenCodePlugin", () => {
     mock.restore()
   })
 
-  it("starts openclaw during plugin bootstrap when openclaw config exists", async () => {
+  it("still loads when plugin config contains unused legacy fields", async () => {
     // given
-    const openclawConfig = {
-      enabled: true,
-      gateways: {},
-      hooks: {},
-      replyListener: {
-        discordBotToken: "discord-token",
-      },
-    }
     mockLoadPluginConfig.mockReturnValue({
-      openclaw: openclawConfig,
+      auto_update: true,
+      legacy_remote_mcp: true,
     })
 
     // when
-    await OhMyOpenCodePlugin({
+    const result = await OhMyOpenCodePlugin({
       directory: "/tmp/project",
       client: {},
     } as Parameters<typeof OhMyOpenCodePlugin>[0])
 
     // then
-    expect(mockInitializeOpenClaw).toHaveBeenCalledTimes(1)
-    expect(mockInitializeOpenClaw).toHaveBeenCalledWith(openclawConfig)
+    expect(result).toMatchObject({ name: "oh-my-openagent" })
   })
 
-  it("does not start openclaw when openclaw config is absent", async () => {
+  it("still loads when optional legacy fields are absent", async () => {
     // given
     mockLoadPluginConfig.mockReturnValue({})
 
     // when
-    await OhMyOpenCodePlugin({
+    const result = await OhMyOpenCodePlugin({
       directory: "/tmp/project",
       client: {},
     } as Parameters<typeof OhMyOpenCodePlugin>[0])
 
     // then
-    expect(mockInitializeOpenClaw).not.toHaveBeenCalled()
+    expect(result).toMatchObject({ name: "oh-my-openagent" })
   })
 })

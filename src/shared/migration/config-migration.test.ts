@@ -126,7 +126,7 @@ describe("migrateConfigFile backup skipping", () => {
     const workdir = createWorkdir()
     const configPath = join(workdir, "oh-my-opencode.json")
     const migratedContent = {
-      disabled_hooks: ["comment-checker"],
+      disabled_hooks: ["legacy-unknown-hook"],
     }
 
     // Write the already-migrated content to disk
@@ -134,7 +134,7 @@ describe("migrateConfigFile backup skipping", () => {
 
     // rawConfig still has the legacy hook that will be removed
     const rawConfig: Record<string, unknown> = {
-      disabled_hooks: ["gpt-permission-continuation", "comment-checker"],
+      disabled_hooks: ["gpt-permission-continuation", "legacy-unknown-hook"],
     }
 
     // when

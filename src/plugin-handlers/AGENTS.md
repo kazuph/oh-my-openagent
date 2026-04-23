@@ -73,10 +73,10 @@ PRs attempting these patterns will be rejected.
 
 | Agent | Granted | Denied |
 |-------|---------|--------|
-| Librarian | grep_app_* | — |
+| Librarian | — | — |
 | Atlas, Sisyphus, Prometheus | task, task_*, teammate | — |
 | Hephaestus | task | — |
-| Default (all others) | — | grep_app_*, task_*, teammate, LSP |
+| Default (all others) | — | task_*, teammate, LSP |
 
 ## MULTI-LEVEL CONFIG MERGE
 

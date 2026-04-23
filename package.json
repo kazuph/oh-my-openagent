@@ -57,7 +57,6 @@
     "@ast-grep/cli": "^0.41.1",
     "@ast-grep/napi": "^0.41.1",
     "@clack/prompts": "^0.11.0",
-    "@code-yeongyu/comment-checker": "^0.7.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@opencode-ai/plugin": "^1.4.3",
     "@opencode-ai/sdk": "^1.4.3",
@@ -68,7 +67,6 @@
     "jsonc-parser": "^3.3.1",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.4",
-    "posthog-node": "^5.29.2",
     "vscode-jsonrpc": "^8.2.1",
     "zod": "^4.3.6"
   },
@@ -100,7 +98,6 @@
   },
   "trustedDependencies": [
     "@ast-grep/cli",
-    "@ast-grep/napi",
-    "@code-yeongyu/comment-checker"
+    "@ast-grep/napi"
   ]
 }

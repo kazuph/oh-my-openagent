@@ -61,9 +61,6 @@ describe("createPluginDispose", () => {
     const claudeCodeHooks = {
       dispose: (): void => {},
     }
-    const commentChecker = {
-      dispose: (): void => {},
-    }
     const runtimeFallback = {
       dispose: (): void => {},
     }
@@ -77,7 +74,6 @@ describe("createPluginDispose", () => {
       stopAll: async (): Promise<void> => {},
     }
     const claudeCodeHooksDisposeSpy = spyOn(claudeCodeHooks, "dispose")
-    const commentCheckerDisposeSpy = spyOn(commentChecker, "dispose")
     const runtimeFallbackDisposeSpy = spyOn(runtimeFallback, "dispose")
     const todoContinuationEnforcerDisposeSpy = spyOn(todoContinuationEnforcer, "dispose")
     const autoSlashCommandDisposeSpy = spyOn(autoSlashCommand, "dispose")
@@ -92,7 +88,6 @@ describe("createPluginDispose", () => {
       disposeHooks: (): void => {
         disposeCreatedHooks({
           claudeCodeHooks,
-          commentChecker,
           runtimeFallback,
           todoContinuationEnforcer,
           autoSlashCommand,
@@ -105,7 +100,6 @@ describe("createPluginDispose", () => {
 
     // then
     expect(claudeCodeHooksDisposeSpy).toHaveBeenCalledTimes(1)
-    expect(commentCheckerDisposeSpy).toHaveBeenCalledTimes(1)
     expect(runtimeFallbackDisposeSpy).toHaveBeenCalledTimes(1)
     expect(todoContinuationEnforcerDisposeSpy).toHaveBeenCalledTimes(1)
     expect(autoSlashCommandDisposeSpy).toHaveBeenCalledTimes(1)

@@ -3,7 +3,6 @@ import type { ModelCacheState } from "../../plugin-state"
 import type { PluginContext } from "../types"
 
 import {
-  createCommentCheckerHooks,
   createToolOutputTruncatorHook,
   createDirectoryAgentsInjectorHook,
   createDirectoryReadmeInjectorHook,
@@ -27,7 +26,6 @@ import {
 import { safeCreateHook } from "../../shared/safe-create-hook"
 
 export type ToolGuardHooks = {
-  commentChecker: ReturnType<typeof createCommentCheckerHooks> | null
   toolOutputTruncator: ReturnType<typeof createToolOutputTruncatorHook> | null
   directoryAgentsInjector: ReturnType<typeof createDirectoryAgentsInjectorHook> | null
   directoryReadmeInjector: ReturnType<typeof createDirectoryReadmeInjectorHook> | null
@@ -53,10 +51,6 @@ export function createToolGuardHooks(args: {
   const { ctx, pluginConfig, modelCacheState, isHookEnabled, safeHookEnabled } = args
   const safeHook = <T>(hookName: HookName, factory: () => T): T | null =>
     safeCreateHook(hookName, factory, { enabled: safeHookEnabled })
-
-  const commentChecker = isHookEnabled("comment-checker")
-    ? safeHook("comment-checker", () => createCommentCheckerHooks(pluginConfig.comment_checker))
-    : null
 
   const toolOutputTruncator = isHookEnabled("tool-output-truncator")
     ? safeHook("tool-output-truncator", () =>
@@ -134,7 +128,6 @@ export function createToolGuardHooks(args: {
     : null
 
   return {
-    commentChecker,
     toolOutputTruncator,
     directoryAgentsInjector,
     directoryReadmeInjector,

@@ -58,7 +58,7 @@ describe("writeOmoConfig", () => {
           model: "custom/provider-model",
         },
       },
-      disabled_hooks: ["comment-checker"],
+      disabled_hooks: ["legacy-unknown-hook"],
     }
     writeFileSync(testConfigPath, JSON.stringify(existingConfig, null, 2) + "\n", "utf-8")
 
@@ -74,7 +74,7 @@ describe("writeOmoConfig", () => {
     const savedAgents = getRecord(savedConfig.agents)
     const savedSisyphus = getRecord(savedAgents.sisyphus)
     expect(savedSisyphus.model).toBe("custom/provider-model")
-    expect(savedConfig.disabled_hooks).toEqual(["comment-checker"])
+    expect(savedConfig.disabled_hooks).toEqual(["legacy-unknown-hook"])
 
     for (const defaultKey of Object.keys(generatedDefaults)) {
       expect(savedConfig).toHaveProperty(defaultKey)
@@ -85,7 +85,7 @@ describe("writeOmoConfig", () => {
     // given
     const legacyConfigPath = join(testConfigDir, `${LEGACY_CONFIG_BASENAME}.json`)
     const canonicalConfigPath = join(testConfigDir, `${CONFIG_BASENAME}.json`)
-    writeFileSync(legacyConfigPath, JSON.stringify({ disabled_hooks: ["comment-checker"] }, null, 2) + "\n", "utf-8")
+    writeFileSync(legacyConfigPath, JSON.stringify({ disabled_hooks: ["legacy-unknown-hook"] }, null, 2) + "\n", "utf-8")
 
     // when
     const result = writeOmoConfig(installConfig)
@@ -95,6 +95,6 @@ describe("writeOmoConfig", () => {
     expect(result.configPath).toEndWith(canonicalConfigPath)
 
     const savedConfig = parseJsonc<Record<string, unknown>>(readFileSync(canonicalConfigPath, "utf-8"))
-    expect(savedConfig.disabled_hooks).toEqual(["comment-checker"])
+    expect(savedConfig.disabled_hooks).toEqual(["legacy-unknown-hook"])
   })
 })

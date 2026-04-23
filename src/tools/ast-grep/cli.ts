@@ -4,7 +4,6 @@ import {
 	getSgCliPath,
 	DEFAULT_TIMEOUT_MS,
 } from "./constants"
-import { ensureAstGrepBinary } from "./downloader"
 import type { CliLanguage, SgResult } from "./types"
 
 import { getAstGrepPath } from "./cli-binary-path-resolution"
@@ -114,21 +113,16 @@ export async function runSg(options: RunOptions): Promise<SgResult> {
 			errorCode === "ENOENT" || errorMessage.includes("ENOENT") || errorMessage.includes("not found")
 
 		if (isNoEntry) {
-			const downloadedPath = await ensureAstGrepBinary()
-			if (downloadedPath) {
-				return runSg(options)
-			} else {
-        return {
-          matches: [],
-          totalMatches: 0,
-          truncated: false,
-          error:
-            `ast-grep CLI binary not found.\n\n` +
-            `Auto-download failed. Manual install options:\n` +
-            `  bun add -D @ast-grep/cli\n` +
-            `  cargo install ast-grep --locked\n` +
-            `  brew install ast-grep`,
-        }
+      return {
+        matches: [],
+        totalMatches: 0,
+        truncated: false,
+        error:
+          `ast-grep CLI binary not found.\n\n` +
+          `Manual install options:\n` +
+          `  bun add -D @ast-grep/cli\n` +
+          `  cargo install ast-grep --locked\n` +
+          `  brew install ast-grep`,
       }
     }
 

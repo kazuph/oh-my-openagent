@@ -1,8 +1,5 @@
 import type { OhMyOpenCodeConfig } from "../config";
-import { loadMcpConfigs } from "../features/claude-code-mcp-loader";
-import { createBuiltinMcps } from "../mcp";
 import type { PluginComponents } from "./plugin-components-loader";
-import { log } from "../shared";
 
 type McpEntry = Record<string, unknown>;
 
@@ -30,28 +27,10 @@ export async function applyMcpConfig(params: {
   pluginConfig: OhMyOpenCodeConfig;
   pluginComponents: PluginComponents;
 }): Promise<void> {
-  const disabledMcps = params.pluginConfig.disabled_mcps ?? [];
   const userMcp = params.config.mcp as Record<string, unknown> | undefined;
   const userDisabledMcps = captureUserDisabledMcps(userMcp);
-
-  const mcpResult = params.pluginConfig.claude_code?.mcp ?? true
-    ? await loadMcpConfigs(disabledMcps)
-    : { servers: {} };
-
-  if (userMcp) {
-    for (const name of Object.keys(userMcp)) {
-      if (name in mcpResult.servers) {
-        log(`warning: MCP server "${name}" from user config overrides Claude Code .mcp.json`);
-      }
-    }
-  }
-
-  const merged = {
-    ...createBuiltinMcps(disabledMcps, params.pluginConfig),
-    ...mcpResult.servers,
-    ...(userMcp ?? {}),
-    ...params.pluginComponents.mcpServers,
-  } as Record<string, McpEntry>;
+  const disabledMcps = new Set(params.pluginConfig.disabled_mcps ?? []);
+  const merged = { ...(userMcp ?? {}) } as Record<string, McpEntry>;
 
   for (const name of userDisabledMcps) {
     if (merged[name]) {
@@ -59,8 +38,7 @@ export async function applyMcpConfig(params: {
     }
   }
 
-  const disabledSet = new Set(disabledMcps);
-  for (const name of disabledSet) {
+  for (const name of disabledMcps) {
     delete merged[name];
   }
 

@@ -1,4 +1,4 @@
-import { checkAstGrepCli, checkAstGrepNapi, checkCommentChecker } from "./dependencies"
+import { checkAstGrepCli, checkAstGrepNapi } from "./dependencies"
 import { getGhCliInfo } from "./tools-gh"
 import { getInstalledLspServers } from "./tools-lsp"
 import { getBuiltinMcpInfo, getUserMcpInfo } from "./tools-mcp"
@@ -6,10 +6,9 @@ import { CHECK_IDS, CHECK_NAMES } from "../constants"
 import type { CheckResult, DoctorIssue, ToolsSummary } from "../types"
 
 export async function gatherToolsSummary(): Promise<ToolsSummary> {
-  const [astGrepCliInfo, astGrepNapiInfo, commentCheckerInfo, ghInfo] = await Promise.all([
+  const [astGrepCliInfo, astGrepNapiInfo, ghInfo] = await Promise.all([
     checkAstGrepCli(),
     checkAstGrepNapi(),
-    checkCommentChecker(),
     getGhCliInfo(),
   ])
 
@@ -21,7 +20,6 @@ export async function gatherToolsSummary(): Promise<ToolsSummary> {
     lspServers,
     astGrepCli: astGrepCliInfo.installed,
     astGrepNapi: astGrepNapiInfo.installed,
-    commentChecker: commentCheckerInfo.installed,
     ghCli: {
       installed: ghInfo.installed,
       authenticated: ghInfo.authenticated,
@@ -42,16 +40,6 @@ function buildToolIssues(summary: ToolsSummary): DoctorIssue[] {
       fix: "Install @ast-grep/cli globally or add @ast-grep/napi",
       severity: "warning",
       affects: ["ast_grep_search", "ast_grep_replace"],
-    })
-  }
-
-  if (!summary.commentChecker) {
-    issues.push({
-      title: "Comment checker unavailable",
-      description: "Comment checker binary is not installed.",
-      fix: "Install @code-yeongyu/comment-checker",
-      severity: "warning",
-      affects: ["comment-checker hook"],
     })
   }
 
@@ -106,7 +94,6 @@ export async function checkTools(): Promise<CheckResult> {
     message: issues.length === 0 ? "All tools checks passed" : `${issues.length} tools issue(s) detected`,
     details: [
       `AST-Grep: cli=${summary.astGrepCli ? "yes" : "no"}, napi=${summary.astGrepNapi ? "yes" : "no"}`,
-      `Comment checker: ${summary.commentChecker ? "yes" : "no"}`,
       `LSP: ${summary.lspServers.length > 0 ? `${summary.lspServers.length} server(s)` : "none"}`,
       `GH CLI: ${summary.ghCli.installed ? "installed" : "missing"}${summary.ghCli.authenticated ? " (authenticated)" : ""}`,
       `MCP: builtin=${summary.mcpBuiltin.length}, user=${summary.mcpUser.length}`,

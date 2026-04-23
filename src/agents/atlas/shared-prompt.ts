@@ -57,7 +57,6 @@ Every \`task()\` prompt MUST include ALL 6 sections:
 
 ## 3. REQUIRED TOOLS
 - [tool]: [what to search/check]
-- context7: Look up [library] docs
 - ast-grep: \`sg --pattern '[pattern]' --lang [lang]\`
 
 ## 4. MUST DO

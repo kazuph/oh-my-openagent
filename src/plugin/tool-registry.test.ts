@@ -1,8 +1,7 @@
-import { beforeEach, describe, expect, mock, spyOn, test } from "bun:test"
+import { beforeEach, describe, expect, mock, test } from "bun:test"
 import { tool } from "@opencode-ai/plugin"
 
 import type { OhMyOpenCodeConfig } from "../config"
-import * as openclawRuntimeDispatch from "../openclaw/runtime-dispatch"
 import type { ToolsRecord } from "./types"
 
 const fakeTool = tool({
@@ -26,7 +25,6 @@ const syncSessionCreatedCallbacks: Array<
 > = []
 
 const trackedPaneBySession = new Map<string, string>()
-let dispatchOpenClawEvent: ReturnType<typeof spyOn>
 
 const { createToolRegistry, trimToolsToCap } = await import("./tool-registry")
 
@@ -66,7 +64,6 @@ function createPluginConfig(overrides: Partial<OhMyOpenCodeConfig> = {}): OhMyOp
 }
 
 beforeEach(() => {
-  dispatchOpenClawEvent = spyOn(openclawRuntimeDispatch, "dispatchOpenClawEvent")
   syncSessionCreatedCallbacks.length = 0
 })
 
@@ -216,10 +213,9 @@ describe("#given tmux integration is disabled", () => {
   })
 })
 
-describe("#given openclaw is enabled for sync task sessions", () => {
-  test("#when the sync session-created callback runs #then it dispatches openclaw with the tracked pane id", async () => {
+describe("#given a sync task session is created", () => {
+  test("#when the sync session-created callback runs #then tmux tracking is updated", async () => {
     syncSessionCreatedCallbacks.length = 0
-    dispatchOpenClawEvent.mockReset()
     trackedPaneBySession.clear()
 
     const tmuxSessionManager = {
@@ -234,15 +230,9 @@ describe("#given openclaw is enabled for sync task sessions", () => {
       },
     }
 
-    const openclawConfig = {
-      enabled: true,
-      gateways: {},
-      hooks: {},
-    }
-
     createToolRegistry({
       ctx: { directory: "/tmp/project" } as Parameters<typeof createToolRegistry>[0]["ctx"],
-      pluginConfig: createPluginConfig({ openclaw: openclawConfig }),
+      pluginConfig: createPluginConfig(),
       managers: {
         backgroundManager: {},
         tmuxSessionManager,
@@ -265,15 +255,6 @@ describe("#given openclaw is enabled for sync task sessions", () => {
       title: "sync task",
     })
 
-    expect(dispatchOpenClawEvent).toHaveBeenCalledTimes(1)
-    expect(dispatchOpenClawEvent).toHaveBeenCalledWith({
-      config: openclawConfig,
-      rawEvent: "session.created",
-      context: {
-        sessionId: "ses-sync-1",
-        projectPath: "/tmp/project",
-        tmuxPaneId: "%pane-ses-sync-1",
-      },
-    })
+    expect(trackedPaneBySession.get("ses-sync-1")).toBe("%pane-ses-sync-1")
   })
 })

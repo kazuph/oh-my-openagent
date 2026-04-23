@@ -23,7 +23,7 @@ function createMinimalEventHandler() {
       },
     } as never,
     hooks: {
-      autoUpdateChecker: { event: async () => {} },
+      legacyPluginToast: { event: async () => {} },
       claudeCodeHooks: { event: async () => {} },
       backgroundNotificationHook: { event: async () => {} },
       sessionNotification: async () => {},

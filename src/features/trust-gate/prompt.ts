@@ -24,7 +24,6 @@ function formatSurfaceList(surfaces: ExecutionSurface[]): string {
       hook: "Hook",
       mcp: "MCP Server",
       "embedded-command": "Embedded Command",
-      "openclaw-gateway": "OpenClaw Gateway",
       "local-skill": "Local Skill",
     }[s.type] ?? s.type
 

@@ -25,9 +25,8 @@ function createDoctorResult(): DoctorResult {
       ],
       astGrepCli: true,
       astGrepNapi: false,
-      commentChecker: true,
       ghCli: { installed: true, authenticated: true, username: "yeongyu" },
-      mcpBuiltin: ["context7", "grep_app"],
+      mcpBuiltin: [],
       mcpUser: ["custom"],
     },
     summary: {
@@ -122,7 +121,7 @@ describe("formatDoctorOutput", () => {
 
       //#then
       expect(output).toContain("LSP")
-      expect(output).toContain("context7")
+      expect(output).toContain("1 user")
     })
   })
 

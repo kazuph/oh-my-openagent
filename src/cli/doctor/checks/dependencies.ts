@@ -4,7 +4,6 @@ import { dirname, join } from "node:path"
 
 import type { DependencyInfo } from "../types"
 import { spawnWithTimeout } from "../spawn-with-timeout"
-import { getCachedBinaryPath } from "../../../hooks/comment-checker/downloader"
 
 async function checkBinaryExists(binary: string): Promise<{ exists: boolean; path: string | null }> {
   try {
@@ -97,57 +96,5 @@ export async function checkAstGrepNapi(): Promise<DependencyInfo> {
       path: null,
       installHint: "Will use CLI fallback if available",
     }
-  }
-}
-
-function findCommentCheckerPackageBinary(): string | null {
-  const binaryName = process.platform === "win32" ? "comment-checker.exe" : "comment-checker"
-  try {
-    const require = createRequire(import.meta.url)
-    const pkgPath = require.resolve("@code-yeongyu/comment-checker/package.json")
-    const binaryPath = join(dirname(pkgPath), "bin", binaryName)
-    if (existsSync(binaryPath)) return binaryPath
-  } catch {
-    // intentionally empty - package not installed
-  }
-  return null
-}
-
-export async function checkCommentChecker(): Promise<DependencyInfo> {
-  // Check cached binary first (matches runtime resolution order)
-  const cachedPath = getCachedBinaryPath()
-  if (cachedPath) {
-    const version = await getBinaryVersion(cachedPath)
-    return {
-      name: "Comment Checker",
-      required: false,
-      installed: true,
-      version,
-      path: cachedPath,
-    }
-  }
-
-  const binaryCheck = await checkBinaryExists("comment-checker")
-  const resolvedPath = binaryCheck.exists ? binaryCheck.path : findCommentCheckerPackageBinary()
-
-  if (!resolvedPath) {
-    return {
-      name: "Comment Checker",
-      required: false,
-      installed: false,
-      version: null,
-      path: null,
-      installHint: "Hook will be disabled if not available",
-    }
-  }
-
-  const version = await getBinaryVersion(resolvedPath)
-
-  return {
-    name: "Comment Checker",
-    required: false,
-    installed: true,
-    version,
-    path: resolvedPath,
   }
 }

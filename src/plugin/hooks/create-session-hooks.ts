@@ -9,7 +9,6 @@ import {
   createThinkModeHook,
   createModelFallbackHook,
   createAnthropicContextWindowLimitRecoveryHook,
-  createAutoUpdateCheckerHook,
   createAgentUsageReminderHook,
   createNonInteractiveEnvHook,
   createInteractiveBashSessionHook,
@@ -46,7 +45,6 @@ export type SessionHooks = {
   thinkMode: ReturnType<typeof createThinkModeHook> | null
   modelFallback: ReturnType<typeof createModelFallbackHook> | null
   anthropicContextWindowLimitRecovery: ReturnType<typeof createAnthropicContextWindowLimitRecoveryHook> | null
-  autoUpdateChecker: ReturnType<typeof createAutoUpdateCheckerHook> | null
   agentUsageReminder: ReturnType<typeof createAgentUsageReminderHook> | null
   nonInteractiveEnv: ReturnType<typeof createNonInteractiveEnvHook> | null
   interactiveBashSession: ReturnType<typeof createInteractiveBashSessionHook> | null
@@ -179,16 +177,6 @@ export function createSessionHooks(args: {
         createAnthropicContextWindowLimitRecoveryHook(ctx, { experimental: pluginConfig.experimental, pluginConfig }))
     : null
 
-  const autoUpdateChecker = isHookEnabled("auto-update-checker")
-    ? safeHook("auto-update-checker", () =>
-        createAutoUpdateCheckerHook(ctx, {
-          showStartupToast: isHookEnabled("startup-toast"),
-          isSisyphusEnabled: pluginConfig.sisyphus_agent?.disabled !== true,
-          autoUpdate: pluginConfig.auto_update ?? true,
-          modelCapabilities: pluginConfig.model_capabilities,
-        }))
-    : null
-
   const agentUsageReminder = isHookEnabled("agent-usage-reminder")
     ? safeHook("agent-usage-reminder", () => createAgentUsageReminderHook(ctx))
     : null
@@ -278,7 +266,6 @@ export function createSessionHooks(args: {
     thinkMode,
     modelFallback,
     anthropicContextWindowLimitRecovery,
-    autoUpdateChecker,
     agentUsageReminder,
     nonInteractiveEnv,
     interactiveBashSession,

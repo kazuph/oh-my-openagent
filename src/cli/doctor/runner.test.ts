@@ -19,9 +19,8 @@ function createTools(): ToolsSummary {
     lspServers: [{ id: "typescript", extensions: [".ts", ".tsx", ".js", ".jsx"] }],
     astGrepCli: true,
     astGrepNapi: false,
-    commentChecker: true,
     ghCli: { installed: true, authenticated: true, username: "yeongyu" },
-    mcpBuiltin: ["context7"],
+    mcpBuiltin: [],
     mcpUser: ["custom-mcp"],
   }
 }

@@ -205,7 +205,7 @@ describe("migrateAgentNames", () => {
 describe("migrateHookNames", () => {
   test("migrates anthropic-auto-compact to anthropic-context-window-limit-recovery", () => {
     // given: Config with legacy hook name
-    const hooks = ["anthropic-auto-compact", "comment-checker"]
+    const hooks = ["anthropic-auto-compact", "legacy-unknown-hook"]
 
     // when: Migrate hook names
     const { migrated, changed, removed } = migrateHookNames(hooks)
@@ -213,7 +213,7 @@ describe("migrateHookNames", () => {
     // then: Legacy hook name should be migrated
     expect(changed).toBe(true)
     expect(migrated).toContain("anthropic-context-window-limit-recovery")
-    expect(migrated).toContain("comment-checker")
+    expect(migrated).toContain("legacy-unknown-hook")
     expect(migrated).not.toContain("anthropic-auto-compact")
     expect(removed).toEqual([])
   })
@@ -262,7 +262,7 @@ describe("migrateHookNames", () => {
 
   test("migrates sisyphus-orchestrator to atlas", () => {
     // given: Config with legacy sisyphus-orchestrator hook
-    const hooks = ["sisyphus-orchestrator", "comment-checker"]
+    const hooks = ["sisyphus-orchestrator", "legacy-unknown-hook"]
 
     // when: Migrate hook names
     const { migrated, changed, removed } = migrateHookNames(hooks)
@@ -270,35 +270,35 @@ describe("migrateHookNames", () => {
     // then: sisyphus-orchestrator should be migrated to atlas
     expect(changed).toBe(true)
     expect(migrated).toContain("atlas")
-    expect(migrated).toContain("comment-checker")
+    expect(migrated).toContain("legacy-unknown-hook")
     expect(migrated).not.toContain("sisyphus-orchestrator")
     expect(removed).toEqual([])
   })
 
   test("removes obsolete hooks and returns them in removed array", () => {
     // given: Config with removed hooks from v3.0.0
-    const hooks = ["preemptive-compaction", "empty-message-sanitizer", "comment-checker"]
+    const hooks = ["preemptive-compaction", "empty-message-sanitizer", "legacy-unknown-hook"]
 
     // when: Migrate hook names
     const { migrated, changed, removed } = migrateHookNames(hooks)
 
     // then: Removed hooks should be filtered out
     expect(changed).toBe(true)
-    expect(migrated).toEqual(["preemptive-compaction", "comment-checker"])
+    expect(migrated).toEqual(["preemptive-compaction", "legacy-unknown-hook"])
     expect(removed).toContain("empty-message-sanitizer")
     expect(removed).toHaveLength(1)
   })
 
   test("removes gpt-permission-continuation from disabled hooks", () => {
     // given: Config with removed GPT permission continuation hook
-    const hooks = ["gpt-permission-continuation", "comment-checker"]
+    const hooks = ["gpt-permission-continuation", "legacy-unknown-hook"]
 
     // when: Migrate hook names
     const { migrated, changed, removed } = migrateHookNames(hooks)
 
     // then: Removed hook should be filtered out
     expect(changed).toBe(true)
-    expect(migrated).toEqual(["comment-checker"])
+    expect(migrated).toEqual(["legacy-unknown-hook"])
     expect(removed).toEqual(["gpt-permission-continuation"])
   })
 
@@ -415,7 +415,7 @@ describe("migrateConfigFile", () => {
   test("migrates legacy hook names in disabled_hooks", () => {
     // given: Config with legacy hook names
     const rawConfig: Record<string, unknown> = {
-      disabled_hooks: ["anthropic-auto-compact", "comment-checker"],
+      disabled_hooks: ["anthropic-auto-compact", "legacy-unknown-hook"],
     }
 
     // when: Migrate config file
@@ -429,19 +429,19 @@ describe("migrateConfigFile", () => {
 
   test("removes deleted hook names from disabled_hooks", () => {
     const rawConfig: Record<string, unknown> = {
-      disabled_hooks: ["delegate-task-english-directive", "comment-checker"],
+      disabled_hooks: ["delegate-task-english-directive", "legacy-unknown-hook"],
     }
 
     const needsWrite = migrateConfigFile(testConfigPath, rawConfig)
 
     expect(needsWrite).toBe(true)
-    expect(rawConfig.disabled_hooks).toEqual(["comment-checker"])
+    expect(rawConfig.disabled_hooks).toEqual(["legacy-unknown-hook"])
   })
 
   test("removes gpt-permission-continuation from disabled_hooks", () => {
     // given: Config with removed GPT permission continuation hook
     const rawConfig: Record<string, unknown> = {
-      disabled_hooks: ["gpt-permission-continuation", "comment-checker"],
+      disabled_hooks: ["gpt-permission-continuation", "legacy-unknown-hook"],
     }
 
     // when: Migrate config file
@@ -449,7 +449,7 @@ describe("migrateConfigFile", () => {
 
     // then: Removed hook should be filtered out
     expect(needsWrite).toBe(true)
-    expect(rawConfig.disabled_hooks).toEqual(["comment-checker"])
+    expect(rawConfig.disabled_hooks).toEqual(["legacy-unknown-hook"])
   })
 
   test("does not write if no migration needed", () => {

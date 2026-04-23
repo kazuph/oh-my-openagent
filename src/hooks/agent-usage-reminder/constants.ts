@@ -12,11 +12,6 @@ export const TARGET_TOOLS = new Set([
   "glob",
   "safe_glob",
   "webfetch",
-  "context7_resolve-library-id",
-  "context7_query-docs",
-  "websearch_web_search_exa",
-  "context7_get-library-docs",
-  "grep_app_searchgithub",
 ]);
 
 export const AGENT_TOOLS = new Set([

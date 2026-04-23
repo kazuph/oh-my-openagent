@@ -6,7 +6,6 @@ export { buildWindowsToastScript, escapeAppleScriptText, escapePowerShellSingleQ
 export { hasIncompleteTodos } from "./session-todo-status";
 export { createIdleNotificationScheduler } from "./session-notification-scheduler";
 export { createSessionRecoveryHook, type SessionRecoveryHook, type SessionRecoveryOptions } from "./session-recovery";
-export { createCommentCheckerHooks } from "./comment-checker";
 export { createToolOutputTruncatorHook } from "./tool-output-truncator";
 export { createDirectoryAgentsInjectorHook } from "./directory-agents-injector";
 export { createDirectoryReadmeInjectorHook } from "./directory-readme-injector";
@@ -18,7 +17,6 @@ export { createModelFallbackHook, setPendingModelFallback, clearPendingModelFall
 export { createClaudeCodeHooksHook } from "./claude-code-hooks";
 export { createRulesInjectorHook } from "./rules-injector";
 export { createBackgroundNotificationHook } from "./background-notification"
-export { createAutoUpdateCheckerHook } from "./auto-update-checker";
 
 export { createAgentUsageReminderHook } from "./agent-usage-reminder";
 export { createKeywordDetectorHook } from "./keyword-detector";

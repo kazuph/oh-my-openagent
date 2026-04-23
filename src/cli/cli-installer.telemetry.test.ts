@@ -2,12 +2,12 @@ import { afterEach, describe, expect, it, mock, spyOn } from "bun:test"
 import * as configManager from "./config-manager"
 import type { InstallArgs } from "./types"
 
-describe("runCliInstaller telemetry isolation", () => {
+describe("runCliInstaller", () => {
   afterEach(() => {
     mock.restore()
   })
 
-  it("does not crash CLI install when telemetry shutdown throws", async () => {
+  it("does not crash CLI install without telemetry", async () => {
     // given
     const restoreSpies = [
       spyOn(configManager, "detectCurrentConfig").mockReturnValue({
@@ -35,18 +35,6 @@ describe("runCliInstaller telemetry isolation", () => {
         configPath: "/tmp/oh-my-opencode.jsonc",
       }),
     ]
-
-    mock.module("../shared/posthog", () => ({
-      createCliPostHog: mock(() => ({
-        trackActive: mock(() => {}),
-        capture: mock(() => {}),
-        captureException: mock(() => {}),
-        shutdown: mock(async () => {
-          throw new Error("shutdown failed")
-        }),
-      })),
-      getPostHogDistinctId: mock(() => "install-distinct-id"),
-    }))
 
     const { runCliInstaller } = await import(`./cli-installer?telemetry=${Date.now()}-${Math.random()}`)
     const args: InstallArgs = {

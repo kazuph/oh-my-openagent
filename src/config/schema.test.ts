@@ -14,10 +14,10 @@ import {
 } from "./schema"
 
 describe("disabled_mcps schema", () => {
-  test("should accept built-in MCP names", () => {
+  test("should accept arbitrary MCP names", () => {
     // given
     const config = {
-      disabled_mcps: ["context7", "grep_app"],
+      disabled_mcps: ["local-docs", "repo-search"],
     }
 
     // when
@@ -26,7 +26,7 @@ describe("disabled_mcps schema", () => {
     // then
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.data.disabled_mcps).toEqual(["context7", "grep_app"])
+      expect(result.data.disabled_mcps).toEqual(["local-docs", "repo-search"])
     }
   })
 
@@ -46,10 +46,10 @@ describe("disabled_mcps schema", () => {
     }
   })
 
-  test("should accept mixed built-in and custom names", () => {
+  test("should accept mixed MCP names", () => {
     // given
     const config = {
-      disabled_mcps: ["context7", "playwright", "custom-server"],
+      disabled_mcps: ["local-docs", "playwright", "custom-server"],
     }
 
     // when
@@ -58,7 +58,7 @@ describe("disabled_mcps schema", () => {
     // then
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.data.disabled_mcps).toEqual(["context7", "playwright", "custom-server"])
+      expect(result.data.disabled_mcps).toEqual(["local-docs", "playwright", "custom-server"])
     }
   })
 

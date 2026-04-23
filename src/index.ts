@@ -7,7 +7,6 @@ import { createHooks } from "./create-hooks"
 import { createManagers } from "./create-managers"
 import { createRuntimeTmuxConfig, isTmuxIntegrationEnabled } from "./create-runtime-tmux-config"
 import { createTools } from "./create-tools"
-import { initializeOpenClaw } from "./openclaw"
 import { createPluginInterface } from "./plugin-interface"
 import { createPluginDispose, type PluginDispose } from "./plugin-dispose"
 
@@ -18,8 +17,6 @@ import { injectServerAuthIntoClient, log, logLegacyPluginStartupWarning } from "
 import { detectExternalSkillPlugin, getSkillPluginConflictWarning } from "./shared/external-plugin-detector"
 import { startBackgroundCheck as startTmuxCheck } from "./tools/interactive-bash"
 import { lspManager } from "./tools/lsp/client"
-import { createPluginPostHog, getPostHogDistinctId } from "./shared/posthog"
-import { evaluateProjectTrust, shouldGateProject, TRUST_ENV_VAR } from "./features/trust-gate"
 
 let activePluginDispose: PluginDispose | null = null
 
@@ -39,44 +36,6 @@ const OhMyOpenCodePlugin: Plugin = async (ctx) => {
   await activePluginDispose?.()
 
   const pluginConfig = loadPluginConfig(ctx.directory, ctx)
-
-  const posthog = createPluginPostHog()
-  const distinctId = getPostHogDistinctId()
-  try {
-    posthog.trackActive(distinctId, "plugin_loaded")
-  } catch {
-    // telemetry failure is non-fatal, silently ignore
-  }
-  try {
-    posthog.capture({
-      distinctId,
-      event: "plugin_loaded",
-      properties: {
-        entry_point: "plugin",
-        has_openclaw: !!pluginConfig.openclaw,
-        tmux_enabled: isTmuxIntegrationEnabled(pluginConfig),
-      },
-    })
-  } catch {
-    // telemetry failure is non-fatal, silently ignore
-  }
-  // Trust Gate: 未信頼projectの実行面チェック
-  // openclaw初期化前にチェック（command gateway実行を防ぐ）
-  if (pluginConfig.openclaw) {
-    const openclawProjectPath = ctx.directory
-    if (shouldGateProject(openclawProjectPath)) {
-      if (process.env[TRUST_ENV_VAR] !== "1") {
-        log(`[trust-gate] OpenClaw gateway disabled - project not trusted: ${openclawProjectPath}`)
-        log(`[trust-gate] Run "opencode trust ${openclawProjectPath}" to approve, or set ${TRUST_ENV_VAR}=1`)
-        // openclaw初期化をスキップ（承認なし）
-      } else {
-        log(`[trust-gate] OpenClaw gateway auto-approved via ${TRUST_ENV_VAR}=1`)
-        await initializeOpenClaw(pluginConfig.openclaw)
-      }
-    } else {
-      await initializeOpenClaw(pluginConfig.openclaw)
-    }
-  }
   const tmuxIntegrationEnabled = isTmuxIntegrationEnabled(pluginConfig)
   if (tmuxIntegrationEnabled) {
     startTmuxCheck()
@@ -163,7 +122,6 @@ export type {
   AgentName,
   AgentOverrideConfig,
   AgentOverrides,
-  McpName,
   HookName,
   BuiltinCommandName,
 } from "./config"

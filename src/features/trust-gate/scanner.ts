@@ -5,7 +5,6 @@
  * - .claude/settings.json, .claude/settings.local.json (hooks)
  * - .mcp.json (local MCP servers)
  * - .opencode/command/*.md, .claude/commands/*.md (!cmd)
- * - .opencode config (openclaw command gateway)
  * - project-local skills (.claude/skills, .opencode/skills, .agents/skills)
  * - config.skills.sources (project-local skill sources)
  */
@@ -27,7 +26,6 @@ const DEFAULT_CONFIG: ScannerConfig = {
     ".claude/commands/*.md",
   ],
   skillDirs: [".claude/skills", ".opencode/skills", ".opencode/skill", ".agents/skills"],
-  openclawConfigs: [".opencode/config.json", ".opencode/oh-my-opencode.jsonc"],
 }
 
 /**
@@ -249,37 +247,6 @@ function scanEmbeddedCommands(projectRoot: string, config: ScannerConfig): Execu
 }
 
 /**
- * openclaw command gateway を検出
- */
-function scanOpenclawGateways(projectRoot: string, config: ScannerConfig): ExecutionSurface[] {
-  const surfaces: ExecutionSurface[] = []
-
-  for (const file of config.openclawConfigs) {
-    const filePath = join(projectRoot, file)
-    if (!existsSync(filePath)) continue
-
-    let content: string
-    try {
-      content = readFileSync(filePath, "utf-8")
-    } catch {
-      continue
-    }
-
-    // openclaw gateway type:command を検索
-    const gatewayRegex = /"type"\s*:\s*"command"/g
-    if (gatewayRegex.test(content)) {
-      surfaces.push({
-        type: "openclaw-gateway",
-        filePath: resolve(filePath),
-        command: "openclaw command gateway",
-      })
-    }
-  }
-
-  return surfaces
-}
-
-/**
  * project-local skills を検出
  */
 function scanLocalSkills(projectRoot: string, config: ScannerConfig): ExecutionSurface[] {
@@ -345,7 +312,6 @@ export function scanExecutionSurfaces(projectRoot: string, config?: ScannerConfi
     surfaces.push(...scanHooks(projectRoot, cfg))
     surfaces.push(...scanMcpConfigs(projectRoot, cfg))
     surfaces.push(...scanEmbeddedCommands(projectRoot, cfg))
-    surfaces.push(...scanOpenclawGateways(projectRoot, cfg))
     surfaces.push(...scanLocalSkills(projectRoot, cfg))
   } catch (err) {
     log(`[trust-gate] Error scanning execution surfaces: ${err instanceof Error ? err.message : err}`)
@@ -361,7 +327,7 @@ export function hasExecutionSurfaces(projectRoot: string, config?: ScannerConfig
   const cfg = config ?? DEFAULT_CONFIG
 
   // いずれかのファイルが存在するかチェック
-  const filesToCheck = [...cfg.hookFiles, ...cfg.mcpFiles, ...cfg.openclawConfigs]
+  const filesToCheck = [...cfg.hookFiles, ...cfg.mcpFiles]
   for (const file of filesToCheck) {
     if (existsSync(join(projectRoot, file))) {
       return scanExecutionSurfaces(projectRoot, config).length > 0

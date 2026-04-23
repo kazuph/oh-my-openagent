@@ -6,8 +6,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { spawnSync } from "bun"
 
-import { extractTarGz } from "./binary-downloader"
-import { validateArchiveEntries } from "./archive-entry-validator"
+import { extractTarGz, validateArchiveEntries } from "./archive-entry-validator"
 import { extractZip } from "./zip-extractor"
 
 const testDirs: string[] = []

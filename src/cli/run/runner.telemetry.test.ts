@@ -2,12 +2,12 @@ import { afterEach, describe, expect, it, mock } from "bun:test"
 
 async function* createEmptyEventStream(): AsyncIterable<unknown> {}
 
-describe("run telemetry isolation", () => {
+describe("run", () => {
   afterEach(() => {
     mock.restore()
   })
 
-  it("does not crash CLI run when telemetry throws", async () => {
+  it("does not crash CLI run without telemetry", async () => {
     // given
     mock.module("../../plugin-config", () => ({
       loadPluginConfig: mock(() => ({})),
@@ -59,20 +59,6 @@ describe("run telemetry isolation", () => {
         restore: mock(() => {}),
       })),
     }))
-    mock.module("../../shared/posthog", () => ({
-      createCliPostHog: mock(() => ({
-        trackActive: () => {
-          throw new Error("telemetry failed")
-        },
-        capture: mock(() => {}),
-        captureException: mock(() => {}),
-        shutdown: mock(async () => {
-          throw new Error("shutdown failed")
-        }),
-      })),
-      getPostHogDistinctId: mock(() => "run-distinct-id"),
-    }))
-
     const { run } = await import(`./runner?telemetry=${Date.now()}-${Math.random()}`)
 
     // when

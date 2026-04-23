@@ -2,8 +2,6 @@ import { existsSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
 import { resolveSymlink } from "../../../shared/file-utils"
-import { getLatestVersion } from "../../../hooks/auto-update-checker/checker"
-import { extractChannel } from "../../../hooks/auto-update-checker"
 import { PACKAGE_NAME } from "../constants"
 import { ACCEPTED_PACKAGE_NAMES, getOpenCodeCacheDir, getOpenCodeConfigPaths, parseJsonc } from "../../../shared"
 
@@ -126,10 +124,13 @@ export function getLoadedPluginVersion(): LoadedVersionInfo {
 }
 
 export async function getLatestPluginVersion(currentVersion: string | null): Promise<string | null> {
-  const channel = extractChannel(currentVersion)
-  return getLatestVersion(channel)
+  void currentVersion
+  return null
 }
 
 export function getSuggestedInstallTag(currentVersion: string | null): string {
-  return extractChannel(currentVersion)
+  const prerelease = currentVersion?.match(/-(alpha|beta|canary)\b/i)?.[1]?.toLowerCase()
+  return prerelease === "alpha" || prerelease === "beta" || prerelease === "canary"
+    ? prerelease
+    : "latest"
 }

@@ -36,7 +36,6 @@ export function applyToolConfig(params: {
 
   params.config.tools = {
     ...(params.config.tools as Record<string, unknown>),
-    "grep_app_*": false,
     LspHover: false,
     LspCodeActions: false,
     LspCodeActionResolve: false,
@@ -61,7 +60,7 @@ export function applyToolConfig(params: {
 
   const librarian = agentByKey(params.agentResult, "librarian");
   if (librarian) {
-    librarian.permission = { ...librarian.permission, "grep_app_*": "allow" };
+    librarian.permission = { ...librarian.permission };
   }
   const looker = agentByKey(params.agentResult, "multimodal-looker");
   if (looker) {

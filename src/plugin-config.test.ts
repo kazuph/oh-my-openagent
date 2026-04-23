@@ -123,7 +123,7 @@ describe("mergeConfigs", () => {
 
     it("should merge disabled arrays without duplicates", () => {
       const base = createConfig({
-        disabled_hooks: ["comment-checker", "think-mode"],
+        disabled_hooks: ["legacy-unknown-hook", "think-mode"],
       });
 
       const override = createConfig({
@@ -132,7 +132,7 @@ describe("mergeConfigs", () => {
 
       const result = mergeConfigs(base, override);
 
-      expect(result.disabled_hooks).toContain("comment-checker");
+      expect(result.disabled_hooks).toContain("legacy-unknown-hook");
       expect(result.disabled_hooks).toContain("think-mode");
       expect(result.disabled_hooks).toContain("session-recovery");
       expect(result.disabled_hooks?.length).toBe(3);
@@ -186,7 +186,7 @@ describe("parseConfigPartially", () => {
           oracle: { model: "openai/gpt-5.4" },
           momus: { model: "openai/gpt-5.4" },
         },
-        disabled_hooks: ["comment-checker"],
+        disabled_hooks: ["legacy-unknown-hook"],
       };
 
       const result = parseConfigPartially(rawConfig);
@@ -194,7 +194,7 @@ describe("parseConfigPartially", () => {
       expect(result).not.toBeNull();
       expect(result!.agents?.oracle).toMatchObject({ model: "openai/gpt-5.4" });
       expect(result!.agents?.momus).toMatchObject({ model: "openai/gpt-5.4" });
-      expect(result!.disabled_hooks).toEqual(["comment-checker"]);
+      expect(result!.disabled_hooks).toEqual(["legacy-unknown-hook"]);
     });
   });
 
@@ -214,13 +214,13 @@ describe("parseConfigPartially", () => {
             },
           },
         },
-        disabled_hooks: ["comment-checker"],
+        disabled_hooks: ["legacy-unknown-hook"],
       };
 
       const result = parseConfigPartially(rawConfig);
 
       expect(result).not.toBeNull();
-      expect(result!.disabled_hooks).toEqual(["comment-checker"]);
+      expect(result!.disabled_hooks).toEqual(["legacy-unknown-hook"]);
       expect(result!.agents).toBeUndefined();
     });
 
