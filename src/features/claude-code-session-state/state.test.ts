@@ -143,22 +143,22 @@ describe("claude-code-session-state", () => {
 
     test("should resolve config keys back to the registered raw agent name", () => {
       // given
-      registerAgentName("\u200B\u200B\u200B\u200BAtlas - Plan Executor")
+      registerAgentName("Atlas - Plan Executor")
 
       // when / then
-      expect(resolveRegisteredAgentName("atlas")).toBe("\u200B\u200B\u200B\u200BAtlas - Plan Executor")
-      expect(resolveRegisteredAgentName("Atlas - Plan Executor")).toBe("\u200B\u200B\u200B\u200BAtlas - Plan Executor")
+      expect(resolveRegisteredAgentName("atlas")).toBe("Atlas - Plan Executor")
+      expect(resolveRegisteredAgentName("Atlas - Plan Executor")).toBe("Atlas - Plan Executor")
     })
 
     test("should resolve legacy parenthesized names to registered agent", () => {
       // given - agent registered with new display name format
-      registerAgentName("\u200BSisyphus - Ultraworker")
+      registerAgentName("Sisyphus - Ultraworker")
 
       // when - historical session has old parenthesized format
       const resolved = resolveRegisteredAgentName("Sisyphus (Ultraworker)")
 
       // then - resolves to registered name via config key lookup
-      expect(resolved).toBe("\u200BSisyphus - Ultraworker")
+      expect(resolved).toBe("Sisyphus - Ultraworker")
     })
 
     test("should resolve bare lowercase name from historical session", () => {

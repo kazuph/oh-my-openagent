@@ -31,6 +31,7 @@ import {
 } from "./agent-override-protection";
 import { buildPrometheusAgentConfig } from "./prometheus-agent-config-builder";
 import { buildPlanDemoteConfig } from "./plan-model-inheritance";
+import { inferEffectiveModel } from "./infer-effective-model";
 
 type AgentConfigRecord = Record<string, Record<string, unknown> | undefined> & {
   build?: Record<string, unknown>;
@@ -94,7 +95,7 @@ export async function applyAgentConfig(params: {
 
   const browserProvider =
     params.pluginConfig.browser_automation_engine?.provider ?? "playwright";
-  const currentModel = params.config.model as string | undefined;
+  const currentModel = inferEffectiveModel(params.config);
   const disabledSkills = new Set<string>(params.pluginConfig.disabled_skills ?? []);
   const useTaskSystem = isTaskSystemEnabled(params.pluginConfig);
   const disableOmoEnv = params.pluginConfig.experimental?.disable_omo_env ?? false;

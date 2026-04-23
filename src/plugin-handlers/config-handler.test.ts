@@ -22,6 +22,7 @@ import * as modelResolver from "../shared/model-resolver"
 import * as configErrors from "../shared/config-errors"
 import * as agentPriorityOrder from "./agent-priority-order"
 import * as prometheusAgentConfigBuilder from "./prometheus-agent-config-builder"
+import { inferEffectiveModel } from "./infer-effective-model"
 
 let createConfigHandler: (typeof import("./config-handler"))["createConfigHandler"]
 
@@ -519,6 +520,50 @@ describe("Agent permission defaults", () => {
 })
 
 describe("default_agent behavior with Sisyphus orchestration", () => {
+  test("infers a system default model from provider config when config.model is missing", async () => {
+    // given
+    const createBuiltinAgentsMock = agents.createBuiltinAgents as unknown as {
+      mockResolvedValue: (value: Record<string, unknown>) => void
+      mock: { calls: unknown[][] }
+    }
+    createBuiltinAgentsMock.mockResolvedValue({
+      sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
+      hephaestus: { name: "hephaestus", prompt: "test", mode: "primary" },
+      atlas: { name: "atlas", prompt: "test", mode: "primary" },
+    })
+    const pluginConfig = createPluginConfig({})
+    const config: Record<string, unknown> = {
+      provider: {
+        "qwen-local": {
+          models: {
+            "qwen3.6-35b-a3b-tqplus-q4km": {
+              name: "Q3.6 35B",
+            },
+          },
+        },
+      },
+      agent: {},
+    }
+    const handler = createConfigHandler({
+      ctx: { directory: "/tmp" },
+      pluginConfig,
+      modelCacheState: {
+        anthropicContext1MEnabled: false,
+        modelContextLimitsCache: new Map(),
+      },
+    })
+
+    // when
+    await handler(config)
+
+    // then
+    const inferredModel = inferEffectiveModel(config)
+    expect(inferredModel).toBe("qwen-local/qwen3.6-35b-a3b-tqplus-q4km")
+    expect(createBuiltinAgentsMock.mock.calls.at(-1)?.[3]).toBe(inferredModel)
+    expect(createBuiltinAgentsMock.mock.calls.at(-1)?.[9]).toBe(inferredModel)
+    expect(config.default_agent).toBe(getAgentRuntimeName("sisyphus"))
+  })
+
   test("canonicalizes configured default_agent with surrounding whitespace", async () => {
     // given
     const pluginConfig = createPluginConfig({})
