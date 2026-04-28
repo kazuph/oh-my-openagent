@@ -5,7 +5,7 @@ import type { CategoryConfig } from "../../config/schema";
 
 describe("maybeCreateSisyphusConfig", () => {
   describe("#given GPT model with user override allowing apply_patch", () => {
-    test("#when config is created #then apply_patch is still denied", () => {
+    test("#when config is created #then user permission is preserved", () => {
       // given
       const agentOverrides: AgentOverrides = {
         sisyphus: {
@@ -34,7 +34,7 @@ describe("maybeCreateSisyphusConfig", () => {
       // then
       expect(config).toBeDefined();
       expect(config?.model).toBe("openai/gpt-5.4");
-      expect(config?.permission).toHaveProperty("apply_patch", "deny");
+      expect(config?.permission).toHaveProperty("apply_patch", "allow");
     });
   });
 
@@ -74,7 +74,7 @@ describe("maybeCreateSisyphusConfig", () => {
   });
 
   describe("#given generic GPT model with user override allowing apply_patch", () => {
-    test("#when config is created #then apply_patch is still denied", () => {
+    test("#when config is created #then user permission is preserved", () => {
       // given
       const agentOverrides: AgentOverrides = {
         sisyphus: {
@@ -103,7 +103,7 @@ describe("maybeCreateSisyphusConfig", () => {
       // then
       expect(config).toBeDefined();
       expect(config?.model).toBe("openai/gpt-4o");
-      expect(config?.permission).toHaveProperty("apply_patch", "deny");
+      expect(config?.permission).toHaveProperty("apply_patch", "allow");
     });
   });
 });

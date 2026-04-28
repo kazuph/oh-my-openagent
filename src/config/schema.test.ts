@@ -646,7 +646,7 @@ describe("BrowserAutomationProviderSchema", () => {
 })
 
 describe("BrowserAutomationConfigSchema", () => {
-  test("defaults provider to 'playwright' when not specified", () => {
+  test("defaults provider to 'playwright-cli' when not specified", () => {
     // given
     const input = {}
 
@@ -654,7 +654,7 @@ describe("BrowserAutomationConfigSchema", () => {
     const result = BrowserAutomationConfigSchema.parse(input)
 
     // then
-    expect(result.provider).toBe("playwright")
+    expect(result.provider).toBe("playwright-cli")
   })
 
   test("accepts agent-browser provider", () => {

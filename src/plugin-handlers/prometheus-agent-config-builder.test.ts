@@ -70,8 +70,8 @@ describe("buildPrometheusAgentConfig", () => {
     });
 
     describe("#when currentModel IS in Prometheus fallback chain", () => {
-      test("preserves currentModel as uiSelectedModel for claude-opus-4-6", async () => {
-        // given - currentModel matches a Prometheus fallback chain entry
+      test("does not preserve currentModel as uiSelectedModel when fallback chains are removed", async () => {
+        // given
         const currentModel = "anthropic/claude-opus-4-6";
 
         // when - should not throw and should produce a valid config
@@ -82,12 +82,12 @@ describe("buildPrometheusAgentConfig", () => {
           currentModel,
         });
 
-        // then - config should be produced (currentModel accepted as valid)
+        // then - config should be produced, but currentModel is no longer auto-forwarded
         expect(result).toBeDefined();
         expect(resolveModelPipelineSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             intent: expect.objectContaining({
-              uiSelectedModel: currentModel,
+              uiSelectedModel: undefined,
             }),
           })
         );

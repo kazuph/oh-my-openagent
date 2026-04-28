@@ -1,6 +1,5 @@
 import { describe, test, expect } from "bun:test"
 import { createOracleAgent } from "./oracle"
-import { createLibrarianAgent } from "./librarian"
 import { createExploreAgent } from "./explore"
 import { createMomusAgent } from "./momus"
 import { createMetisAgent } from "./metis"
@@ -36,21 +35,6 @@ describe("read-only agent tool restrictions", () => {
       // then
       expect(permission["task"]).toBe("deny")
       expect(permission["call_omo_agent"]).toBeUndefined()
-    })
-  })
-
-  describe("Librarian", () => {
-    test("denies all file-writing tools", () => {
-      // given
-      const agent = createLibrarianAgent(TEST_MODEL)
-
-      // when
-      const permission = agent.permission as Record<string, string>
-
-      // then
-      for (const tool of FILE_WRITE_TOOLS) {
-        expect(permission[tool]).toBe("deny")
-      }
     })
   })
 
@@ -113,22 +97,21 @@ describe("read-only agent tool restrictions", () => {
     })
   })
 
-  describe("Sisyphus GPT variants", () => {
-    test("deny apply_patch for GPT models but not Claude models", () => {
+  describe("Sisyphus permissions", () => {
+    test("keeps the same permission surface across model strings", () => {
       // given
-      const gpt54Agent = createSisyphusAgent("openai/gpt-5.4")
-      const gptGenericAgent = createSisyphusAgent("openai/gpt-5.2")
+      const gptAgent = createSisyphusAgent("openai/gpt-5.4")
       const claudeAgent = createSisyphusAgent(TEST_MODEL)
 
       // when
-      const gpt54Permission = (gpt54Agent.permission ?? {}) as Record<string, string>
-      const gptGenericPermission = (gptGenericAgent.permission ?? {}) as Record<string, string>
+      const gptPermission = (gptAgent.permission ?? {}) as Record<string, string>
       const claudePermission = (claudeAgent.permission ?? {}) as Record<string, string>
 
       // then
-      expect(gpt54Permission["apply_patch"]).toBe("deny")
-      expect(gptGenericPermission["apply_patch"]).toBe("deny")
-      expect(claudePermission["apply_patch"]).toBeUndefined()
+      expect(gptPermission["question"]).toBe("allow")
+      expect(gptPermission["call_omo_agent"]).toBe("deny")
+      expect(claudePermission["question"]).toBe("allow")
+      expect(claudePermission["call_omo_agent"]).toBe("deny")
     })
   })
 })

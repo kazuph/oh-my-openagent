@@ -205,10 +205,10 @@ FILES MODIFIED: [list]
 export const DEFAULT_ATLAS_PARALLEL_EXECUTION = `<parallel_execution>
 ## Parallel Execution Rules
 
-**For exploration (explore/librarian)**: ALWAYS background
+**For exploration (explore + librarian skill)**: ALWAYS background
 \`\`\`typescript
 task(subagent_type="explore", load_skills=[], run_in_background=true, ...)
-task(subagent_type="librarian", load_skills=[], run_in_background=true, ...)
+task(subagent_type="explore", load_skills=["librarian"], run_in_background=true, ...)
 \`\`\`
 
 **For task execution**: NEVER background

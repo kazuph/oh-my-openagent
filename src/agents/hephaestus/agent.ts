@@ -1,6 +1,5 @@
 import type { AgentConfig } from "@opencode-ai/sdk";
 import type { AgentMode, AgentPromptMetadata } from "../types";
-import { isGpt5_4Model, isGpt5_3CodexModel } from "../types";
 import type {
   AvailableAgent,
   AvailableTool,
@@ -8,27 +7,9 @@ import type {
   AvailableCategory,
 } from "../dynamic-agent-prompt-builder";
 import { categorizeTools, buildAgentIdentitySection } from "../dynamic-agent-prompt-builder";
-import { getGptApplyPatchPermission } from "../gpt-apply-patch-guard";
-
-import { buildHephaestusPrompt as buildGptPrompt } from "./gpt";
-import { buildHephaestusPrompt as buildGpt53CodexPrompt } from "./gpt-5-3-codex";
-import { buildHephaestusPrompt as buildGpt54Prompt } from "./gpt-5-4";
+import { buildHephaestusPrompt as buildDefaultPrompt } from "./default";
 
 const MODE: AgentMode = "primary";
-
-export type HephaestusPromptSource = "gpt-5-4" | "gpt-5-3-codex" | "gpt";
-
-export function getHephaestusPromptSource(
-  model?: string,
-): HephaestusPromptSource {
-  if (model && isGpt5_4Model(model)) {
-    return "gpt-5-4";
-  }
-  if (model && isGpt5_3CodexModel(model)) {
-    return "gpt-5-3-codex";
-  }
-  return "gpt";
-}
 
 export interface HephaestusContext {
   model?: string;
@@ -52,48 +33,20 @@ function buildDynamicHephaestusPrompt(ctx?: HephaestusContext): string {
   const skills = ctx?.availableSkills ?? [];
   const categories = ctx?.availableCategories ?? [];
   const useTaskSystem = ctx?.useTaskSystem ?? false;
-  const model = ctx?.model;
-
-  const source = getHephaestusPromptSource(model);
-
-  let basePrompt: string;
-  switch (source) {
-    case "gpt-5-4":
-      basePrompt = buildGpt54Prompt(
-        agents,
-        tools,
-        skills,
-        categories,
-        useTaskSystem,
-      );
-      break;
-    case "gpt-5-3-codex":
-      basePrompt = buildGpt53CodexPrompt(
-        agents,
-        tools,
-        skills,
-        categories,
-        useTaskSystem,
-      );
-      break;
-    case "gpt":
-    default:
-      basePrompt = buildGptPrompt(
-        agents,
-        tools,
-        skills,
-        categories,
-        useTaskSystem,
-      );
-      break;
-  }
+  const basePrompt = buildDefaultPrompt(
+    agents,
+    tools,
+    skills,
+    categories,
+    useTaskSystem,
+  );
 
   const agentIdentity = buildAgentIdentitySection(
     "Hephaestus",
     "Autonomous deep worker for software engineering from OhMyOpenCode",
   );
 
-  return `${agentIdentity}\n${basePrompt}`;
+    return `${agentIdentity}\n${basePrompt}`;
 }
 
 export function createHephaestusAgent(
@@ -117,7 +70,7 @@ export function createHephaestusAgent(
 
   return {
     description:
-      "Autonomous Deep Worker - goal-oriented execution with GPT Codex. Explores thoroughly before acting, uses explore/librarian agents for comprehensive context, completes tasks end-to-end. Inspired by AmpCode deep mode. (Hephaestus - OhMyOpenCode)",
+      "Autonomous deep worker for goal-oriented execution. Explores thoroughly before acting, uses explore plus loaded skills for comprehensive context, and completes tasks end-to-end. Inspired by AmpCode deep mode. (Hephaestus - OhMyOpenCode)",
     mode: MODE,
     model,
     maxTokens: 32000,
@@ -126,9 +79,7 @@ export function createHephaestusAgent(
     permission: {
       question: "allow",
       call_omo_agent: "deny",
-      ...getGptApplyPatchPermission(model),
     } as AgentConfig["permission"],
-    reasoningEffort: "medium",
   };
 }
 createHephaestusAgent.mode = MODE;

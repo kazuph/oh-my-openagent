@@ -10,16 +10,12 @@ import type { PluginContext, ToolsRecord } from "./types"
 
 import {
   builtinTools,
-  createBackgroundTools,
-  createCallOmoAgent,
-  createLookAt,
   createSkillMcpTool,
   createSkillTool,
   createGrepTools,
   createGlobTools,
   createAstGrepTools,
   createSessionManagerTools,
-  createDelegateTask,
   discoverCommandsSync,
   interactive_bash,
   createTaskCreateTool,
@@ -38,16 +34,12 @@ import { normalizeToolArgSchemas } from "./normalize-tool-arg-schemas"
 
 type ToolRegistryFactories = {
   builtinTools: typeof builtinTools
-  createBackgroundTools: typeof createBackgroundTools
-  createCallOmoAgent: typeof createCallOmoAgent
-  createLookAt: typeof createLookAt
   createSkillMcpTool: typeof createSkillMcpTool
   createSkillTool: typeof createSkillTool
   createGrepTools: typeof createGrepTools
   createGlobTools: typeof createGlobTools
   createAstGrepTools: typeof createAstGrepTools
   createSessionManagerTools: typeof createSessionManagerTools
-  createDelegateTask: typeof createDelegateTask
   discoverCommandsSync: typeof discoverCommandsSync
   interactive_bash: typeof interactive_bash
   createTaskCreateTool: typeof createTaskCreateTool
@@ -59,16 +51,12 @@ type ToolRegistryFactories = {
 
 const defaultToolRegistryFactories: ToolRegistryFactories = {
   builtinTools,
-  createBackgroundTools,
-  createCallOmoAgent,
-  createLookAt,
   createSkillMcpTool,
   createSkillTool,
   createGrepTools,
   createGlobTools,
   createAstGrepTools,
   createSessionManagerTools,
-  createDelegateTask,
   discoverCommandsSync,
   interactive_bash,
   createTaskCreateTool,
@@ -89,14 +77,10 @@ const LOW_PRIORITY_TOOL_ORDER = [
   "session_search",
   "session_info",
   "interactive_bash",
-  "look_at",
-  "call_omo_agent",
   "task_create",
   "task_get",
   "task_list",
   "task_update",
-  "background_output",
-  "background_cancel",
   "edit",
   "ast_grep_replace",
   "ast_grep_search",
@@ -104,7 +88,6 @@ const LOW_PRIORITY_TOOL_ORDER = [
   "grep",
   "skill_mcp",
   "skill",
-  "task",
   "lsp_rename",
   "lsp_prepare_rename",
   "lsp_find_references",
@@ -162,52 +145,6 @@ export function createToolRegistry(args: {
     ...defaultToolRegistryFactories,
     ...toolFactories,
   }
-  const backgroundTools = factories.createBackgroundTools(managers.backgroundManager, ctx.client)
-  const callOmoAgent = factories.createCallOmoAgent(
-    ctx,
-    managers.backgroundManager,
-    pluginConfig.disabled_agents ?? [],
-    pluginConfig.agents,
-    pluginConfig.categories,
-  )
-
-  const isMultimodalLookerEnabled = !(pluginConfig.disabled_agents ?? []).some(
-    (agent) => agent.toLowerCase() === "multimodal-looker",
-  )
-  const lookAt = isMultimodalLookerEnabled ? factories.createLookAt(ctx) : null
-
-  const delegateTask = factories.createDelegateTask({
-    manager: managers.backgroundManager,
-    client: ctx.client,
-    directory: ctx.directory,
-    userCategories: pluginConfig.categories,
-    agentOverrides: pluginConfig.agents,
-    gitMasterConfig: pluginConfig.git_master,
-    sisyphusJuniorModel: pluginConfig.agents?.["sisyphus-junior"]?.model,
-    browserProvider: skillContext.browserProvider,
-    disabledSkills: skillContext.disabledSkills,
-    availableCategories,
-    availableSkills: skillContext.availableSkills,
-    sisyphusAgentConfig: pluginConfig.sisyphus_agent,
-    syncPollTimeoutMs: pluginConfig.background_task?.syncPollTimeoutMs,
-    onSyncSessionCreated: async (event) => {
-      log("[index] onSyncSessionCreated callback", {
-        sessionID: event.sessionID,
-        parentID: event.parentID,
-        title: event.title,
-      })
-      await managers.tmuxSessionManager.onSessionCreated({
-        type: "session.created",
-        properties: {
-          info: {
-            id: event.sessionID,
-            parentID: event.parentID,
-            title: event.title,
-          },
-        },
-      })
-    },
-  })
 
   const getSessionIDForMcp = (): string | undefined => getMainSessionID()
 
@@ -252,10 +189,6 @@ export function createToolRegistry(args: {
     ...factories.createGlobTools(ctx),
     ...factories.createAstGrepTools(ctx),
     ...factories.createSessionManagerTools(ctx),
-    ...backgroundTools,
-    call_omo_agent: callOmoAgent,
-    ...(lookAt ? { look_at: lookAt } : {}),
-    task: delegateTask,
     skill_mcp: skillMcpTool,
     skill: skillTool,
     ...(interactiveBashEnabled ? { interactive_bash: factories.interactive_bash } : {}),

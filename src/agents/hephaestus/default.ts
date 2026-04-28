@@ -1,6 +1,4 @@
-/** Generic GPT Hephaestus prompt - fallback for GPT models without a model-specific variant */
-
-import { GPT_APPLY_PATCH_GUIDANCE } from "../gpt-apply-patch-guard"
+/** Default Hephaestus prompt. */
 import type {
   AvailableAgent,
   AvailableTool,
@@ -76,7 +74,7 @@ export function buildHephaestusPrompt(
     availableSkills,
   );
   const exploreSection = buildExploreSection(availableAgents);
-  const librarianSection = buildLibrarianSection(availableAgents);
+  const librarianSection = buildLibrarianSection(availableSkills);
   const categorySkillsGuide = buildCategorySkillsDelegationGuide(
     availableCategories,
     availableSkills,
@@ -111,7 +109,7 @@ Asking the user is the LAST resort after exhausting creative alternatives.
 - Run verification (lint, tests, build) WITHOUT asking
 - Make decisions. Course-correct only on CONCRETE failure
 - Note assumptions in final message, not as questions mid-work
-- Need context? Fire explore/librarian in background IMMEDIATELY - continue only with non-overlapping work while they search
+- Need context? Fire explore plus the \`librarian\` skill in background immediately - continue only with non-overlapping work while research runs
 
 ### Task Scope Clarification
 
@@ -145,7 +143,7 @@ ${keyTriggers}
 **Exploration Hierarchy (MANDATORY before any question):**
 1. Direct tools: \`gh pr list\`, \`git log\`, \`grep\`, \`rg\`, file reads
 2. Explore agents: Fire 2-3 parallel background searches
-3. Librarian agents: Check docs, GitHub, external sources
+3. Load \`librarian\` skill: Check docs, GitHub, external sources
 4. Context inference: Educated guess from surrounding context
 5. LAST RESORT: Ask ONE precise question (only if 1-4 all failed)
 
@@ -181,25 +179,25 @@ ${librarianSection}
 
 <tool_usage_rules>
 - Parallelize independent tool calls: multiple file reads, grep searches, agent fires - all at once
-- Explore/Librarian = background grep. ALWAYS \`run_in_background=true\`, ALWAYS parallel
+- Explore and \`librarian\` skill-backed research should run in background and in parallel
 - After any file edit: restate what changed, where, and what validation follows
 - Prefer tools over guessing whenever you need specific data (files, configs, patterns)
 </tool_usage_rules>
 
-**How to call explore/librarian:**
+**How to call exploration and external research:**
 \`\`\`
 // Codebase search - use subagent_type="explore"
 task(subagent_type="explore", run_in_background=true, load_skills=[], description="Find [what]", prompt="[CONTEXT]: ... [GOAL]: ... [REQUEST]: ...")
 
-// External docs/OSS search - use subagent_type="librarian"
-task(subagent_type="librarian", run_in_background=true, load_skills=[], description="Find [what]", prompt="[CONTEXT]: ... [GOAL]: ... [REQUEST]: ...")
+// External docs/OSS search - load librarian on an existing worker
+task(subagent_type="explore", run_in_background=true, load_skills=["librarian"], description="Find [what]", prompt="[CONTEXT]: ... [GOAL]: ... [REQUEST]: ...")
 
 \`\`\`
 
 **Rules:**
 - Fire 2-5 explore agents in parallel for any non-trivial codebase question
 - Parallelize independent file reads - don't read files one at a time
-- NEVER use \`run_in_background=false\` for explore/librarian
+- NEVER use \`run_in_background=false\` for background exploration or research
 - Continue only with non-overlapping work after launching background agents
 - Collect results with \`background_output(task_id="...")\` when needed
 - BEFORE final answer, cancel DISPOSABLE tasks individually
@@ -221,7 +219,7 @@ STOP searching when:
 
 ## Execution Loop (EXPLORE → PLAN → DECIDE → EXECUTE → VERIFY)
 
-1. **EXPLORE**: Fire 2-5 explore/librarian agents IN PARALLEL + direct tool reads simultaneously
+1. **EXPLORE**: Fire 2-5 explore or skill-backed research tasks IN PARALLEL + direct tool reads simultaneously
 2. **PLAN**: List files to modify, specific changes, dependencies, complexity estimate
 3. **DECIDE**: Trivial (<10 lines, single file) → self. Complex (multi-file, >100 lines) → MUST delegate
 4. **EXECUTE**: Surgical changes yourself, or exhaustive context in delegation prompts
@@ -312,7 +310,7 @@ ${oracleSection}
 1. SEARCH existing codebase for similar patterns/styles
 2. Match naming, indentation, import styles, error handling conventions
 3. Default to ASCII. Add comments only for non-obvious blocks
-4. ${GPT_APPLY_PATCH_GUIDANCE}
+4. Use the normal editing tools available in this environment. Do not rely on model-specific tool guidance.
 
 ### After Implementation (MANDATORY - DO NOT SKIP)
 

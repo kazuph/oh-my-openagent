@@ -261,7 +261,9 @@ Skills aren't just prompts. Each brings:
 - Embedded MCP servers, on-demand
 - Scoped permissions. Agents stay in bounds
 
-Built-ins: `playwright` (browser automation), `git-master` (atomic commits, rebase surgery), `frontend-ui-ux` (design-first UI).
+Built-ins: `git-master` (atomic commits, rebase surgery), `frontend-ui-ux` (design-first UI), `ai-slop-remover` (local cleanup).
+
+Browser automation is expected to come from your existing Claude Code/OpenCode skills instead of OMO auto-bundling extra browser dependencies.
 
 Add your own: `.opencode/skills/*/SKILL.md` or `~/.config/opencode/skills/*/SKILL.md`.
 
@@ -312,7 +314,7 @@ Features you'll think should've always existed. Once you use them, you can't go 
 See full [Features Documentation](docs/reference/features.md).
 
 **Quick Overview:**
-- **Agents**: Sisyphus (the main agent), Prometheus (planner), Oracle (architecture/debugging), Librarian (docs/code search), Explore (fast codebase grep), Multimodal Looker
+- **Agents**: Sisyphus (the main agent), Prometheus (planner), Oracle (architecture/debugging), Explore (fast codebase grep), Multimodal Looker
 - **Background Agents**: Run multiple agents in parallel like a real dev team
 - **LSP & AST Tools**: Refactoring, rename, diagnostics, AST-aware code search
 - **Hash-anchored Edit Tool**: `LINE#ID` references validate content before applying every change. Surgical edits, zero stale-line errors
@@ -337,7 +339,8 @@ See [Configuration Documentation](docs/reference/configuration.md).
 - **Config Locations**: The compatibility layer recognizes both `oh-my-openagent.json[c]` and legacy `oh-my-opencode.json[c]` plugin config files. Existing installs still commonly use the legacy basename.
 - **JSONC Support**: Comments and trailing commas supported
 - **Agents**: Override models, temperatures, prompts, and permissions for any agent
-- **Built-in Skills**: `playwright` (browser automation), `git-master` (atomic commits)
+- **Built-in Skills**: `git-master` (atomic commits), `frontend-ui-ux`, `ai-slop-remover`
+- **Browser Skills**: Prefer your Claude Code/OpenCode browser skills. OMO's browser provider preference defaults to `playwright-cli`
 - **Sisyphus Agent**: Main orchestrator with Prometheus (Planner) and Metis (Plan Consultant)
 - **Background Tasks**: Configure concurrency limits per provider/model
 - **Categories**: Domain-specific task delegation (`visual`, `business-logic`, custom)

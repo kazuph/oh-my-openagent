@@ -268,12 +268,10 @@ Skills provide specialized workflows with embedded MCP servers and detailed inst
 | Skill              | Trigger                                                 | Description                                                                                                                                                                                                                                                                                                                                   |
 | ------------------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **git-master**     | commit, rebase, squash, "who wrote", "when was X added" | Git expert. Detects commit styles, splits atomic commits, formulates rebase strategies. Three specializations: Commit Architect (atomic commits, dependency ordering, style detection), Rebase Surgeon (history rewriting, conflict resolution, branch cleanup), History Archaeologist (finding when/where specific changes were introduced). |
-| **playwright**     | Browser tasks, testing, screenshots                     | Browser automation via Playwright MCP. MUST USE for browser verification, browsing, web scraping, testing, and screenshots.                                                                                                                                                                                                                   |
-| **agent-browser**  | Browser tasks on agent-browser                          | Browser automation via the `agent-browser` CLI. Covers navigation, snapshots, screenshots, network inspection, and scripted interactions.                                                                                                                                                                                                     |
-| **dev-browser**    | Stateful browser scripting                              | Browser automation with persistent page state for iterative workflows and authenticated sessions.                                                                                                                                                                                                                                             |
 | **frontend-ui-ux** | UI/UX tasks, styling                                    | Designer-turned-developer persona. Crafts stunning UI/UX even without design mockups. Emphasizes bold aesthetic direction, distinctive typography, cohesive color palettes.                                                                                                                                                                   |
-| **review-work**    | "review work", "review my work", "QA my work"         | Post-implementation review orchestrator. Runs 5 parallel local review lanes using direct codex/claude/gemini one-shot CLIs instead of provider-managed sub-agents, so reviews still work when variables such as CLOUDFLARE_GATEWAY_ID are unavailable. All 5 lanes must pass for review to pass.                                         |
 | **ai-slop-remover**| "remove AI slop", "de-AI", "humanize"                 | Removes AI-generated code smells from files while preserving functionality. Identifies and eliminates verbose comments, redundant error handling, over-engineered patterns, and generic AI phrasing.                                                                                                                                             |
+
+Browser automation and other external-tool workflows are no longer auto-bundled as OMO built-ins. Prefer Claude Code/OpenCode compatible skills for those integrations.
 
 #### git-master Core Principles
 
@@ -309,24 +307,21 @@ Skills provide specialized workflows with embedded MCP servers and detailed inst
 
 ### Browser Automation Options
 
-Oh-My-OpenAgent provides two browser automation providers, configurable via `browser_automation_engine.provider`.
+Oh-My-OpenAgent does not auto-bundle browser automation skills anymore. Instead, `browser_automation_engine.provider` selects which discovered Claude Code/OpenCode browser skill name should be preferred.
 
-#### Option 1: Playwright MCP (Default)
+#### Default preference: Playwright CLI compatibility
 
-```yaml
-mcp:
-  playwright:
-    command: npx
-    args: ["@playwright/mcp@latest"]
+```json
+{
+  "browser_automation_engine": {
+    "provider": "playwright-cli"
+  }
+}
 ```
 
-**Usage**:
+This prefers discovered browser skills named `playwright-cli`, while still accepting canonical `playwright` skills for compatibility.
 
-```
-/playwright Navigate to example.com and take a screenshot
-```
-
-#### Option 2: Agent Browser CLI (Vercel)
+#### Other preferences
 
 ```json
 {
@@ -336,25 +331,14 @@ mcp:
 }
 ```
 
-**Requires installation**:
+Supported provider values:
 
-```bash
-bun add -g agent-browser
-```
+- `playwright`
+- `playwright-cli` (default)
+- `agent-browser`
+- `dev-browser`
 
-**Usage**:
-
-```
-Use agent-browser to navigate to example.com and extract the main heading
-```
-
-**Capabilities (Both Providers)**:
-
-- Navigate and interact with web pages
-- Take screenshots and PDFs
-- Fill forms and click elements
-- Wait for network requests
-- Scrape content
+Install and define the actual browser skill through Claude Code/OpenCode skill loading if you want browser automation available.
 
 ### Custom Skill Creation (SKILL.md)
 
@@ -388,7 +372,7 @@ This content will be injected into the agent's system prompt.
 
 Same-named skill at higher priority overrides lower.
 
-Disable built-in skills via `disabled_skills: ["playwright"]` in config.
+Disable built-in skills via `disabled_skills: ["git-master"]` in config.
 
 ### Category + Skill Combo Strategies
 
@@ -590,7 +574,7 @@ Load custom commands from:
 
 | Tool                  | Description                                                                                                                                                                                                                             |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **call_omo_agent**    | Spawn explore/librarian agents. Supports `run_in_background`.                                                                                                                                                                           |
+| **call_omo_agent**    | Spawn built-in specialist or custom agents. Supports `run_in_background`.                                                                                                                                                               |
 | **task**              | Category-based task delegation. Supports built-in categories like `visual-engineering`, `ultrabrain`, `deep`, `artistry`, `quick`, `unspecified-low`, `unspecified-high`, and `writing`, or direct agent targeting via `subagent_type`. |
 | **background_output** | Retrieve background task results                                                                                                                                                                                                        |
 | **background_cancel** | Cancel running background tasks                                                                                                                                                                                                         |

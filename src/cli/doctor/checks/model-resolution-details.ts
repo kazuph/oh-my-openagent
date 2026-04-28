@@ -54,7 +54,7 @@ export function buildModelResolutionDetails(options: {
     details.push(`  ${marker} ${category.name}: ${display} [capabilities: ${formatCapabilityResolutionLabel(category.capabilityDiagnostics?.resolutionMode)}]`)
   }
   details.push("")
-  details.push("● = user override, ○ = provider fallback")
+  details.push("● = user override, ○ = built-in/default resolution")
 
   return details
 }

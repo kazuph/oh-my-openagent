@@ -1195,7 +1195,7 @@ describe("Plan agent model inheritance from prometheus", () => {
     expect(agents.plan.temperature).toBe(0.5)
   })
 
-  test("plan agent does NOT inherit prompt, description, or color from prometheus", async () => {
+  test("plan agent stays model-less when prometheus has no explicit model to inherit", async () => {
     //#given
     spyOn(shared, "resolveModelPipeline" as any).mockReturnValue({
       model: "anthropic/claude-opus-4-6",
@@ -1224,9 +1224,9 @@ describe("Plan agent model inheritance from prometheus", () => {
     //#when
     await handler(config)
 
-    //#then - plan has model settings but NOT prompt/description/color
+    //#then
     const agents = config.agent as Record<string, Record<string, unknown>>
-    expect(agents.plan.model).toBe("anthropic/claude-opus-4-6")
+    expect(agents.plan.model).toBeUndefined()
     expect(agents.plan.prompt).toBeUndefined()
     expect(agents.plan.description).toBeUndefined()
     expect(agents.plan.color).toBeUndefined()

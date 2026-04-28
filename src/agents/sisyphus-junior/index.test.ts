@@ -1,604 +1,111 @@
 import { describe, expect, test } from "bun:test"
 import {
+  buildSisyphusJuniorPrompt,
   createSisyphusJuniorAgentWithOverrides,
   SISYPHUS_JUNIOR_DEFAULTS,
-  getSisyphusJuniorPromptSource,
-  buildSisyphusJuniorPrompt,
 } from "./index"
 
 describe("createSisyphusJuniorAgentWithOverrides", () => {
-  describe("honored fields", () => {
-    test("applies model override", () => {
-      // given
-      const override = { model: "openai/gpt-5.4" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.model).toBe("openai/gpt-5.4")
-    })
-
-    test("applies temperature override", () => {
-      // given
-      const override = { temperature: 0.5 }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.temperature).toBe(0.5)
-    })
-
-    test("applies top_p override", () => {
-      // given
-      const override = { top_p: 0.9 }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.top_p).toBe(0.9)
-    })
-
-    test("applies description override", () => {
-      // given
-      const override = { description: "Custom description" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.description).toBe("Custom description")
-    })
-
-    test("applies color override", () => {
-      // given
-      const override = { color: "#FF0000" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.color).toBe("#FF0000")
-    })
-
-    test("appends prompt_append to base prompt", () => {
-      // given
-      const override = { prompt_append: "Extra instructions here" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.prompt).toContain("Sisyphus-Junior")
-      expect(result.prompt).toContain("Extra instructions here")
-    })
-  })
-
-  describe("defaults", () => {
-    test("uses default model when no override", () => {
-      // given
-      const override = {}
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.model).toBe(SISYPHUS_JUNIOR_DEFAULTS.model)
-    })
-
-    test("uses default temperature when no override", () => {
-      // given
-      const override = {}
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.temperature).toBe(SISYPHUS_JUNIOR_DEFAULTS.temperature)
-    })
-  })
-
-  describe("disable semantics", () => {
-    test("disable: true causes override block to be ignored", () => {
-      // given
-      const override = {
-        disable: true,
-        model: "openai/gpt-5.4",
-        temperature: 0.9,
-      }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then - defaults should be used, not the overrides
-      expect(result.model).toBe(SISYPHUS_JUNIOR_DEFAULTS.model)
-      expect(result.temperature).toBe(SISYPHUS_JUNIOR_DEFAULTS.temperature)
-    })
-  })
-
-  describe("constrained fields", () => {
-    test("mode is forced to subagent", () => {
-      // given
-      const override = { mode: "primary" as const }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.mode).toBe("subagent")
-    })
-
-    test("prompt override is ignored (discipline text preserved)", () => {
-      // given
-      const override = { prompt: "Completely new prompt that replaces everything" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.prompt).toContain("Sisyphus-Junior")
-      expect(result.prompt).not.toBe("Completely new prompt that replaces everything")
-    })
-  })
-
-  describe("reasoning configuration", () => {
-    test("#given GPT model #when agent is created #then uses reasoningEffort", () => {
-      // given
-      const override = { model: "openai/gpt-5.4" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.reasoningEffort).toBe("medium")
-      expect(result.thinking).toBeUndefined()
-    })
-
-    test("#given Claude model #when agent is created #then injects thinking", () => {
-      // given
-      const override = { model: "anthropic/claude-sonnet-4-6" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.reasoningEffort).toBeUndefined()
-      expect(result.thinking).toEqual({ type: "enabled", budgetTokens: 32000 })
-    })
-
-    test("#given GLM reasoning model #when agent is created #then skips injected thinking", () => {
-      // given
-      const override = { model: "z-ai/glm-5" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.reasoningEffort).toBeUndefined()
-      expect(result.thinking).toBeUndefined()
-    })
-  })
-
-  describe("tool safety (task blocked, call_omo_agent allowed)", () => {
-    test("task remains blocked, call_omo_agent is allowed via tools format", () => {
-      // given
-      const override = {
-        tools: {
-          task: true,
-          call_omo_agent: true,
-          read: true,
-        },
-      }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      const tools = result.tools as Record<string, boolean> | undefined
-      const permission = result.permission as Record<string, string> | undefined
-      if (tools) {
-        expect(tools.task).toBe(false)
-        // call_omo_agent is NOW ALLOWED for subagents to spawn explore/librarian
-        expect(tools.call_omo_agent).toBe(true)
-        expect(tools.read).toBe(true)
-      }
-      if (permission) {
-        expect(permission.task).toBe("deny")
-        // call_omo_agent is NOW ALLOWED for subagents to spawn explore/librarian
-        expect(permission.call_omo_agent).toBe("allow")
-      }
-    })
-
-    test("task remains blocked when using permission format override", () => {
-      // given
-      const override = {
-        permission: {
-          task: "allow",
-          call_omo_agent: "allow",
-          read: "allow",
-        },
-      } as { permission: Record<string, string> }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override as Parameters<typeof createSisyphusJuniorAgentWithOverrides>[0])
-
-      // then - task blocked, but call_omo_agent allowed for explore/librarian spawning
-      const tools = result.tools as Record<string, boolean> | undefined
-      const permission = result.permission as Record<string, string> | undefined
-      if (tools) {
-        expect(tools.task).toBe(false)
-        expect(tools.call_omo_agent).toBe(true)
-      }
-      if (permission) {
-        expect(permission.task).toBe("deny")
-        expect(permission.call_omo_agent).toBe("allow")
-      }
-    })
-  })
-
-  describe("useTaskSystem integration", () => {
-    test("useTaskSystem=true produces Task_Discipline prompt for Claude", () => {
-      //#given
-      const override = { model: "anthropic/claude-sonnet-4-6" }
-
-      //#when
-      const result = createSisyphusJuniorAgentWithOverrides(override, undefined, true)
-
-      //#then
-      expect(result.prompt).toContain("task_create")
-      expect(result.prompt).toContain("task_update")
-      expect(result.prompt).not.toContain("todowrite")
-    })
-
-    test("useTaskSystem=true produces Task Discipline prompt for GPT", () => {
-      //#given
-      const override = { model: "openai/gpt-5.4" }
-
-      //#when
-      const result = createSisyphusJuniorAgentWithOverrides(override, undefined, true)
-
-      //#then
-      expect(result.prompt).toContain("Task Discipline")
-      expect(result.prompt).toContain("task_create")
-      expect(result.prompt).not.toContain("Todo Discipline")
-    })
-
-    test("useTaskSystem=false (default) produces Todo_Discipline prompt", () => {
-      //#given
-      const override = {}
-
-      //#when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      //#then
-      expect(result.prompt).toContain("todowrite")
-      expect(result.prompt).not.toContain("task_create")
-    })
-
-    test("useTaskSystem=true includes task_create/task_update in Claude prompt", () => {
-      //#given
-      const override = { model: "anthropic/claude-sonnet-4-6" }
-
-      //#when
-      const result = createSisyphusJuniorAgentWithOverrides(override, undefined, true)
-
-      //#then
-      expect(result.prompt).toContain("task_create")
-      expect(result.prompt).toContain("task_update")
-    })
-
-    test("useTaskSystem=true includes task_create/task_update in GPT prompt", () => {
-      //#given
-      const override = { model: "openai/gpt-5.4" }
-
-      //#when
-      const result = createSisyphusJuniorAgentWithOverrides(override, undefined, true)
-
-      //#then
-      expect(result.prompt).toContain("task_create")
-      expect(result.prompt).toContain("task_update")
-    })
-
-    test("useTaskSystem=false uses todowrite instead of task_create", () => {
-      //#given
-      const override = { model: "anthropic/claude-sonnet-4-6" }
-
-      //#when
-      const result = createSisyphusJuniorAgentWithOverrides(override, undefined, false)
-
-      //#then
-      expect(result.prompt).toContain("todowrite")
-      expect(result.prompt).not.toContain("task_create")
-    })
-  })
-
-  describe("prompt composition", () => {
-    test("base prompt contains identity", () => {
-      // given
-      const override = {}
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.prompt).toContain("Sisyphus-Junior")
-      expect(result.prompt).toContain("Execute tasks directly")
-    })
-
-    test("Claude model uses default prompt with discipline section", () => {
-      // given
-      const override = { model: "anthropic/claude-sonnet-4-6" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.prompt).toContain("<Role>")
-      expect(result.prompt).toContain("todowrite")
-    })
-
-    test("GPT model uses GPT-optimized prompt with Hephaestus-style sections", () => {
-      // given
-      const override = { model: "openai/gpt-5.4" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.prompt).toContain("Scope Discipline")
-      expect(result.prompt).toContain("<tool_usage_rules>")
-      expect(result.prompt).toContain("Progress Updates")
-      expect(result.prompt).toContain("Do not use `apply_patch`")
-      expect(result.prompt).toContain("`edit` and `write`")
-    })
-
-    test("GPT 5.4 model uses GPT-5.4 specific prompt", () => {
-      // given
-      const override = { model: "openai/gpt-5.4" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.prompt).toContain("expert coding agent")
-      expect(result.prompt).toContain("<tool_usage_rules>")
-      expect(result.prompt).toContain("Do not use `apply_patch`")
-      expect(result.prompt).toContain("`edit` and `write`")
-      expect(result.prompt).not.toContain("Always use apply_patch")
-    })
-
-    test("GPT 5.3 Codex model uses GPT-5.3-codex specific prompt", () => {
-      // given
-      const override = { model: "openai/gpt-5.3-codex" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      expect(result.prompt).toContain("Senior Engineer")
-      expect(result.prompt).toContain("<tool_usage_rules>")
-      expect(result.prompt).toContain("Do not use `apply_patch`")
-      expect(result.prompt).toContain("`edit` and `write`")
-    })
-
-    test("GPT variants deny apply_patch while Claude variants do not", () => {
-      // given
-      const gpt54Override = { model: "openai/gpt-5.4" }
-      const gpt53Override = { model: "openai/gpt-5.3-codex" }
-      const gptGenericOverride = { model: "openai/gpt-4o" }
-      const claudeOverride = { model: "anthropic/claude-sonnet-4-6" }
-
-      // when
-      const gpt54Result = createSisyphusJuniorAgentWithOverrides(gpt54Override)
-      const gpt53Result = createSisyphusJuniorAgentWithOverrides(gpt53Override)
-      const gptGenericResult = createSisyphusJuniorAgentWithOverrides(gptGenericOverride)
-      const claudeResult = createSisyphusJuniorAgentWithOverrides(claudeOverride)
-
-      // then
-      expect(gpt54Result.permission ?? {}).toHaveProperty("apply_patch", "deny")
-      expect(gpt53Result.permission ?? {}).toHaveProperty("apply_patch", "deny")
-      expect(gptGenericResult.permission ?? {}).toHaveProperty("apply_patch", "deny")
-      expect(claudeResult.permission ?? {}).not.toHaveProperty("apply_patch")
-    })
-
-    test("prompt_append is added after base prompt", () => {
-      // given
-      const override = { prompt_append: "CUSTOM_MARKER_FOR_TEST" }
-
-      // when
-      const result = createSisyphusJuniorAgentWithOverrides(override)
-
-      // then
-      const baseEndIndex = result.prompt!.indexOf("</Style>")
-      const appendIndex = result.prompt!.indexOf("CUSTOM_MARKER_FOR_TEST")
-      expect(baseEndIndex).not.toBe(-1)
-      expect(appendIndex).toBeGreaterThan(baseEndIndex)
-    })
-  })
-})
-
-describe("getSisyphusJuniorPromptSource", () => {
-  test("returns 'gpt-5-4' for GPT 5.4 models", () => {
-    // given
-    const model = "openai/gpt-5.4"
-
+  test("applies simple overrides while preserving the base prompt", () => {
     // when
-    const source = getSisyphusJuniorPromptSource(model)
+    const result = createSisyphusJuniorAgentWithOverrides({
+      model: "openai/gpt-5.4",
+      temperature: 0.5,
+      top_p: 0.9,
+      description: "Custom description",
+      color: "#FF0000",
+      prompt_append: "CUSTOM_MARKER_FOR_TEST",
+    })
 
     // then
-    expect(source).toBe("gpt-5-4")
+    expect(result.model).toBe("openai/gpt-5.4")
+    expect(result.temperature).toBe(0.5)
+    expect(result.top_p).toBe(0.9)
+    expect(result.description).toBe("Custom description")
+    expect(result.color).toBe("#FF0000")
+    expect(result.prompt).toContain("Sisyphus-Junior")
+    expect(result.prompt).toContain("CUSTOM_MARKER_FOR_TEST")
   })
 
-  test("returns 'gpt-5-4' for GitHub Copilot GPT 5.4", () => {
-    // given
-    const model = "github-copilot/gpt-5.4"
-
+  test("ignores override block when disable=true", () => {
     // when
-    const source = getSisyphusJuniorPromptSource(model)
+    const result = createSisyphusJuniorAgentWithOverrides({
+      disable: true,
+      model: "openai/gpt-5.4",
+      temperature: 0.9,
+    })
 
     // then
-    expect(source).toBe("gpt-5-4")
+    expect(result.model).toBe(SISYPHUS_JUNIOR_DEFAULTS.model)
+    expect(result.temperature).toBe(SISYPHUS_JUNIOR_DEFAULTS.temperature)
   })
 
-  test("returns 'gpt-5-3-codex' for GPT 5.3 Codex models", () => {
-    // given
-    const model = "openai/gpt-5.3-codex"
-
+  test("forces subagent mode and keeps prompt replacement disabled", () => {
     // when
-    const source = getSisyphusJuniorPromptSource(model)
+    const result = createSisyphusJuniorAgentWithOverrides({
+      mode: "primary" as const,
+      prompt: "replace everything",
+    })
 
     // then
-    expect(source).toBe("gpt-5-3-codex")
+    expect(result.mode).toBe("subagent")
+    expect(result.prompt).toContain("Sisyphus-Junior")
+    expect(result.prompt).not.toBe("replace everything")
   })
 
-  test("returns 'gpt-5-3-codex' for GitHub Copilot GPT 5.3 Codex", () => {
-    // given
-    const model = "github-copilot/gpt-5.3-codex"
-
+  test("blocks task and allows call_omo_agent regardless of override format", () => {
     // when
-    const source = getSisyphusJuniorPromptSource(model)
+    const viaTools = createSisyphusJuniorAgentWithOverrides({
+      tools: { task: true, call_omo_agent: true, read: true },
+    })
+    const viaPermission = createSisyphusJuniorAgentWithOverrides({
+      permission: { task: "allow", call_omo_agent: "allow", read: "allow" },
+    })
 
     // then
-    expect(source).toBe("gpt-5-3-codex")
+    expect(viaTools.permission).toHaveProperty("task", "deny")
+    expect(viaTools.permission).toHaveProperty("call_omo_agent", "allow")
+    expect(viaPermission.permission).toHaveProperty("task", "deny")
+    expect(viaPermission.permission).toHaveProperty("call_omo_agent", "allow")
   })
 
-  test("returns 'gpt' for generic GPT models", () => {
-    // given
-    const model = "openai/gpt-4o"
-
+  test("does not add model-specific reasoning or apply_patch permissions", () => {
     // when
-    const source = getSisyphusJuniorPromptSource(model)
+    const gptResult = createSisyphusJuniorAgentWithOverrides({ model: "openai/gpt-5.4" })
+    const claudeResult = createSisyphusJuniorAgentWithOverrides({ model: "anthropic/claude-sonnet-4-6" })
 
     // then
-    expect(source).toBe("gpt")
+    expect(gptResult.reasoningEffort).toBeUndefined()
+    expect(gptResult.thinking).toBeUndefined()
+    expect(gptResult.permission ?? {}).not.toHaveProperty("apply_patch")
+    expect(claudeResult.reasoningEffort).toBeUndefined()
+    expect(claudeResult.thinking).toBeUndefined()
+    expect(claudeResult.permission ?? {}).not.toHaveProperty("apply_patch")
   })
 
-  test("returns 'gpt' for GitHub Copilot generic GPT models", () => {
-    // given
-    const model = "github-copilot/gpt-4o"
-
+  test("switches between todo and task discipline via useTaskSystem", () => {
     // when
-    const source = getSisyphusJuniorPromptSource(model)
+    const todoResult = createSisyphusJuniorAgentWithOverrides({}, undefined, false)
+    const taskResult = createSisyphusJuniorAgentWithOverrides({}, undefined, true)
 
     // then
-    expect(source).toBe("gpt")
-  })
-
-  test("returns 'default' for Claude models", () => {
-    // given
-    const model = "anthropic/claude-sonnet-4-6"
-
-    // when
-    const source = getSisyphusJuniorPromptSource(model)
-
-    // then
-    expect(source).toBe("default")
-  })
-
-  test("returns 'default' for undefined model", () => {
-    // given
-    const model = undefined
-
-    // when
-    const source = getSisyphusJuniorPromptSource(model)
-
-    // then
-    expect(source).toBe("default")
+    expect(todoResult.prompt).toContain("todowrite")
+    expect(todoResult.prompt).not.toContain("task_create")
+    expect(taskResult.prompt).toContain("<Task_Discipline>")
+    expect(taskResult.prompt).toContain("task_create")
+    expect(taskResult.prompt).toContain("task_update")
   })
 })
 
 describe("buildSisyphusJuniorPrompt", () => {
-  test("GPT 5.4 model uses GPT-5.4 optimized prompt", () => {
-    // given
-    const model = "openai/gpt-5.4"
-
+  test("uses a single default prompt path across model strings", () => {
     // when
-    const prompt = buildSisyphusJuniorPrompt(model, false)
+    const gptPrompt = buildSisyphusJuniorPrompt("openai/gpt-5.4", false)
+    const claudePrompt = buildSisyphusJuniorPrompt("anthropic/claude-sonnet-4-6", false)
 
     // then
-    expect(prompt).toContain("expert coding agent")
-    expect(prompt).toContain("Scope Discipline")
-    expect(prompt).toContain("<tool_usage_rules>")
-    expect(prompt).toContain("Do not use `apply_patch`")
-  })
-
-  test("GPT 5.3 Codex model uses GPT-5.3-codex prompt", () => {
-    // given
-    const model = "openai/gpt-5.3-codex"
-
-    // when
-    const prompt = buildSisyphusJuniorPrompt(model, false)
-
-    // then
-    expect(prompt).toContain("Senior Engineer")
-    expect(prompt).toContain("Scope Discipline")
-    expect(prompt).toContain("<tool_usage_rules>")
-    expect(prompt).toContain("Do not use `apply_patch`")
-  })
-
-  test("generic GPT model uses generic GPT prompt", () => {
-    // given
-    const model = "openai/gpt-5.4"
-
-    // when
-    const prompt = buildSisyphusJuniorPrompt(model, false)
-
-    // then
-    expect(prompt).toContain("## Identity")
-    expect(prompt).toContain("Scope Discipline")
-    expect(prompt).toContain("<tool_usage_rules>")
-    expect(prompt).toContain("Progress Updates")
-    expect(prompt).toContain("Do not use `apply_patch`")
-  })
-
-  test("Claude model prompt contains Claude-specific sections", () => {
-    // given
-    const model = "anthropic/claude-sonnet-4-6"
-
-    // when
-    const prompt = buildSisyphusJuniorPrompt(model, false)
-
-    // then
-    expect(prompt).toContain("<Role>")
-    expect(prompt).toContain("<Todo_Discipline>")
-    expect(prompt).toContain("todowrite")
-  })
-
-  test("useTaskSystem=true includes Task Discipline for GPT 5.4", () => {
-    // given
-    const model = "openai/gpt-5.4"
-
-    // when
-    const prompt = buildSisyphusJuniorPrompt(model, true)
-
-    // then
-    expect(prompt).toContain("Task Discipline")
-    expect(prompt).toContain("task_create")
-  })
-
-  test("useTaskSystem=true includes Task Discipline for GPT 5.3 Codex", () => {
-    // given
-    const model = "openai/gpt-5.3-codex"
-
-    // when
-    const prompt = buildSisyphusJuniorPrompt(model, true)
-
-    // then
-    expect(prompt).toContain("Task Discipline")
-    expect(prompt).toContain("task_create")
-  })
-
-  test("useTaskSystem=false includes Todo_Discipline for Claude", () => {
-    // given
-    const model = "anthropic/claude-sonnet-4-6"
-
-    // when
-    const prompt = buildSisyphusJuniorPrompt(model, false)
-
-    // then
-    expect(prompt).toContain("<Todo_Discipline>")
-    expect(prompt).toContain("todowrite")
+    expect(gptPrompt).toBe(claudePrompt)
+    expect(gptPrompt).toContain("Sisyphus-Junior")
+    expect(gptPrompt).toContain("<Anti_Duplication>")
   })
 })

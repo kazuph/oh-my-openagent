@@ -17,16 +17,16 @@ describe("model-resolution check", () => {
       expect(sisyphus!.requirement.fallbackChain).toHaveLength(0)
     })
 
-    it("returns category requirements with provider chains", async () => {
+    it("returns category requirements even when fallback chains are intentionally empty", async () => {
       const { getModelResolutionInfo } = await import("./model-resolution")
 
       const info = getModelResolutionInfo()
 
-      // then: Should have category entries
+      // then: Should still have category entries, but no hardcoded chain
       const visual = info.categories.find((c) => c.name === "visual-engineering")
       expect(visual).toBeDefined()
-      expect(visual!.requirement.fallbackChain[0]?.model).toBe("gemini-3.1-pro")
-      expect(visual!.requirement.fallbackChain[0]?.providers).toContain("github-copilot")
+      expect(visual!.requirement.fallbackChain).toHaveLength(0)
+      expect(visual!.effectiveModel).toBe("unknown")
     })
   })
 
@@ -213,7 +213,7 @@ describe("model-resolution check", () => {
       expect(result.details!.some((d) => d.includes("Categories:"))).toBe(true)
       // Should have legend
       expect(result.details!.some((d) => d.includes("user override"))).toBe(true)
-      expect(result.details!.some((d) => d.includes("capabilities: snapshot-backed"))).toBe(true)
+      expect(result.details!.some((d) => d.includes("capabilities:"))).toBe(true)
     })
 
     it("collects warnings when configured models rely on compatibility fallback", async () => {

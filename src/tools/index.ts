@@ -1,3 +1,5 @@
+import type { ToolDefinition } from "@opencode-ai/plugin"
+
 import {
   lsp_goto_definition,
   lsp_find_references,
@@ -21,22 +23,6 @@ export { sessionExists } from "./session-manager/storage"
 
 export { interactive_bash, startBackgroundCheck as startTmuxCheck } from "./interactive-bash"
 export { createSkillMcpTool } from "./skill-mcp"
-
-import {
-  createBackgroundOutput,
-  createBackgroundCancel,
-  type BackgroundOutputManager,
-  type BackgroundCancelClient,
-} from "./background-task"
-
-import type { PluginInput, ToolDefinition } from "@opencode-ai/plugin"
-import type { BackgroundManager } from "../features/background-agent"
-
-type OpencodeClient = PluginInput["client"]
-
-export { createCallOmoAgent } from "./call-omo-agent"
-export { createLookAt } from "./look-at"
-export { createDelegateTask } from "./delegate-task"
 export {
   createTaskCreateTool,
   createTaskGetTool,
@@ -44,15 +30,6 @@ export {
   createTaskUpdateTool,
 } from "./task"
 export { createHashlineEditTool } from "./hashline-edit"
-
-export function createBackgroundTools(manager: BackgroundManager, client: OpencodeClient): Record<string, ToolDefinition> {
-  const outputManager: BackgroundOutputManager = manager
-  const cancelClient: BackgroundCancelClient = client
-  return {
-    background_output: createBackgroundOutput(outputManager, client),
-    background_cancel: createBackgroundCancel(manager, cancelClient),
-  }
-}
 
 export const builtinTools: Record<string, ToolDefinition> = {
   lsp_goto_definition,

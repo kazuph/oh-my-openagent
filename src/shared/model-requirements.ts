@@ -1,309 +1,49 @@
 export type FallbackEntry = {
-  providers: string[];
-  model: string;
-  variant?: string; // Entry-specific variant (e.g., GPT→high, Opus→max)
-  reasoningEffort?: string;
-  temperature?: number;
-  top_p?: number;
-  maxTokens?: number;
-  thinking?: { type: "enabled" | "disabled"; budgetTokens?: number };
-};
+  providers: string[]
+  model: string
+  variant?: string
+  reasoningEffort?: string
+  temperature?: number
+  top_p?: number
+  maxTokens?: number
+  thinking?: { type: "enabled" | "disabled"; budgetTokens?: number }
+}
 
 export type ModelRequirement = {
-  fallbackChain: FallbackEntry[];
-  variant?: string; // Default variant (used when entry doesn't specify one)
-  requiresModel?: string; // If set, only activates when this model is available (fuzzy match)
-  requiresAnyModel?: boolean; // If true, requires at least ONE model in fallbackChain to be available (or empty availability treated as unavailable)
-  requiresProvider?: string[]; // If set, only activates when any of these providers is connected
-};
+  fallbackChain: FallbackEntry[]
+  variant?: string
+  requiresModel?: string
+  requiresAnyModel?: boolean
+  requiresProvider?: string[]
+}
 
-// NOTE: API-key providers (anthropic, google, openai, xai, openrouter,
-// moonshotai*, firmware, ollama-cloud, aihubmix, vercel, venice) were
-// removed on 2026-04-17. Subscription-only routing.
-// See src/features/provider-allowlist for the enforcement guard.
+function noFallbackRequirement(overrides: Partial<ModelRequirement> = {}): ModelRequirement {
+  return {
+    fallbackChain: [],
+    ...overrides,
+  }
+}
 
 export const AGENT_MODEL_REQUIREMENTS: Record<string, ModelRequirement> = {
-  sisyphus: {
-    fallbackChain: [],
-    requiresAnyModel: false,
-  },
-  hephaestus: {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gpt-5.4",
-        variant: "medium",
-      },
-    ],
-    requiresProvider: ["github-copilot", "opencode"],
-  },
-  oracle: {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gpt-5.4",
-        variant: "high",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gemini-3.1-pro",
-        variant: "high",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-opus-4-6",
-        variant: "max",
-      },
-      { providers: ["opencode-go"], model: "glm-5" },
-    ],
-  },
-  librarian: {
-    fallbackChain: [
-      { providers: ["opencode-go"], model: "minimax-m2.7" },
-      { providers: ["opencode"], model: "minimax-m2.7-highspeed" },
-      { providers: ["opencode"], model: "claude-haiku-4-5" },
-      { providers: ["opencode"], model: "gpt-5-nano" },
-    ],
-  },
-  explore: {
-    fallbackChain: [
-      { providers: ["github-copilot"], model: "grok-code-fast-1" },
-      { providers: ["opencode-go"], model: "minimax-m2.7-highspeed" },
-      { providers: ["opencode"], model: "minimax-m2.7" },
-      { providers: ["opencode"], model: "claude-haiku-4-5" },
-      { providers: ["opencode"], model: "gpt-5-nano" },
-    ],
-  },
-  "multimodal-looker": {
-    fallbackChain: [
-      { providers: ["opencode"], model: "gpt-5.4", variant: "medium" },
-      { providers: ["opencode-go"], model: "kimi-k2.5" },
-      { providers: ["zai-coding-plan"], model: "glm-4.6v" },
-      { providers: ["github-copilot", "opencode"], model: "gpt-5-nano" },
-    ],
-  },
-  prometheus: {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-opus-4-6",
-        variant: "max",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gpt-5.4",
-        variant: "high",
-      },
-      { providers: ["opencode-go"], model: "glm-5" },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gemini-3.1-pro",
-      },
-    ],
-  },
-  metis: {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-opus-4-6",
-        variant: "max",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gpt-5.4",
-        variant: "high",
-      },
-      { providers: ["opencode-go"], model: "glm-5" },
-      { providers: ["kimi-for-coding"], model: "k2p5" },
-    ],
-  },
-  momus: {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gpt-5.4",
-        variant: "xhigh",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-opus-4-6",
-        variant: "max",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gemini-3.1-pro",
-        variant: "high",
-      },
-      { providers: ["opencode-go"], model: "glm-5" },
-    ],
-  },
-  atlas: {
-    fallbackChain: [
-      { providers: ["github-copilot", "opencode"], model: "claude-sonnet-4-6" },
-      { providers: ["opencode-go"], model: "kimi-k2.5" },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gpt-5.4",
-        variant: "medium",
-      },
-      { providers: ["opencode-go"], model: "minimax-m2.7" },
-    ],
-  },
-  "sisyphus-junior": {
-    fallbackChain: [
-      { providers: ["github-copilot", "opencode"], model: "claude-sonnet-4-6" },
-      { providers: ["opencode-go"], model: "kimi-k2.5" },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gpt-5.4",
-        variant: "medium",
-      },
-      { providers: ["opencode-go"], model: "minimax-m2.7" },
-      { providers: ["opencode"], model: "big-pickle" },
-    ],
-  },
-};
+  sisyphus: noFallbackRequirement({ requiresAnyModel: false }),
+  hephaestus: noFallbackRequirement(),
+  oracle: noFallbackRequirement(),
+  explore: noFallbackRequirement(),
+  "multimodal-looker": noFallbackRequirement(),
+  prometheus: noFallbackRequirement(),
+  metis: noFallbackRequirement(),
+  momus: noFallbackRequirement(),
+  atlas: noFallbackRequirement(),
+  "sisyphus-junior": noFallbackRequirement(),
+}
 
 export const CATEGORY_MODEL_REQUIREMENTS: Record<string, ModelRequirement> = {
-  "visual-engineering": {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gemini-3.1-pro",
-        variant: "high",
-      },
-      { providers: ["zai-coding-plan", "opencode"], model: "glm-5" },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-opus-4-6",
-        variant: "max",
-      },
-      { providers: ["opencode-go"], model: "glm-5" },
-      { providers: ["kimi-for-coding"], model: "k2p5" },
-    ],
-  },
-  ultrabrain: {
-    fallbackChain: [
-      {
-        providers: ["opencode"],
-        model: "gpt-5.4",
-        variant: "xhigh",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gemini-3.1-pro",
-        variant: "high",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-opus-4-6",
-        variant: "max",
-      },
-      { providers: ["opencode-go"], model: "glm-5" },
-    ],
-  },
-  deep: {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gpt-5.4",
-        variant: "medium",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-opus-4-6",
-        variant: "max",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gemini-3.1-pro",
-        variant: "high",
-      },
-    ],
-  },
-  artistry: {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gemini-3.1-pro",
-        variant: "high",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-opus-4-6",
-        variant: "max",
-      },
-      { providers: ["github-copilot", "opencode"], model: "gpt-5.4" },
-    ],
-    requiresModel: "gemini-3.1-pro",
-  },
-  quick: {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gpt-5.4-mini",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-haiku-4-5",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gemini-3-flash",
-      },
-      { providers: ["opencode-go"], model: "minimax-m2.7" },
-      { providers: ["opencode"], model: "gpt-5-nano" },
-    ],
-  },
-  "unspecified-low": {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-sonnet-4-6",
-      },
-      {
-        providers: ["opencode"],
-        model: "gpt-5.3-codex",
-        variant: "medium",
-      },
-      { providers: ["opencode-go"], model: "kimi-k2.5" },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gemini-3-flash",
-      },
-      { providers: ["opencode-go"], model: "minimax-m2.7" },
-    ],
-  },
-  "unspecified-high": {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-opus-4-6",
-        variant: "max",
-      },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gpt-5.4",
-        variant: "high",
-      },
-      { providers: ["zai-coding-plan", "opencode"], model: "glm-5" },
-      { providers: ["kimi-for-coding"], model: "k2p5" },
-      { providers: ["opencode-go"], model: "glm-5" },
-      { providers: ["opencode"], model: "kimi-k2.5" },
-    ],
-  },
-  writing: {
-    fallbackChain: [
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "gemini-3-flash",
-      },
-      { providers: ["opencode-go"], model: "kimi-k2.5" },
-      {
-        providers: ["github-copilot", "opencode"],
-        model: "claude-sonnet-4-6",
-      },
-      { providers: ["opencode-go"], model: "minimax-m2.7" },
-    ],
-  },
-};
+  "visual-engineering": noFallbackRequirement(),
+  ultrabrain: noFallbackRequirement(),
+  deep: noFallbackRequirement(),
+  artistry: noFallbackRequirement(),
+  quick: noFallbackRequirement(),
+  "unspecified-low": noFallbackRequirement(),
+  "unspecified-high": noFallbackRequirement(),
+  writing: noFallbackRequirement(),
+}

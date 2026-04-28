@@ -1,18 +1,15 @@
 /**
- * Ultrawork message module - routes to appropriate message based on agent/model.
+ * Ultrawork message module - planner agents get planner instructions, everything
+ * else uses the default message.
  *
  * Routing:
  * 1. Planner agents (prometheus, plan) → planner.ts
- * 2. GPT models → gpt.ts
- * 3. Gemini models → gemini.ts
- * 4. Default (Claude, etc.) → default.ts (optimized for Claude series)
+ * 2. All other agents/models → default.ts
  */
 
 export {
   isPlannerAgent,
   isNonOmoAgent,
-  isGptModel,
-  isGeminiModel,
   getUltraworkSource,
 } from "./source-detector";
 export type { UltraworkSource } from "./source-detector";
@@ -20,8 +17,6 @@ export {
   ULTRAWORK_PLANNER_SECTION,
   getPlannerUltraworkMessage,
 } from "./planner";
-export { ULTRAWORK_GPT_MESSAGE, getGptUltraworkMessage } from "./gpt";
-export { ULTRAWORK_GEMINI_MESSAGE, getGeminiUltraworkMessage } from "./gemini";
 export {
   ULTRAWORK_DEFAULT_MESSAGE,
   getDefaultUltraworkMessage,
@@ -29,9 +24,7 @@ export {
 
 import { getUltraworkSource } from "./source-detector";
 import { getPlannerUltraworkMessage } from "./planner";
-import { getGptUltraworkMessage } from "./gpt";
 import { getDefaultUltraworkMessage } from "./default";
-import { getGeminiUltraworkMessage } from "./gemini";
 
 /**
  * Gets the appropriate ultrawork message based on agent and model context.
@@ -45,10 +38,6 @@ export function getUltraworkMessage(
   switch (source) {
     case "planner":
       return getPlannerUltraworkMessage();
-    case "gpt":
-      return getGptUltraworkMessage();
-    case "gemini":
-      return getGeminiUltraworkMessage();
     case "default":
     default:
       return getDefaultUltraworkMessage();

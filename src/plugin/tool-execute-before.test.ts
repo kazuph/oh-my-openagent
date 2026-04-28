@@ -305,14 +305,14 @@ describe("createToolRegistry", () => {
         expect(Object.keys(result.filteredTools)).toHaveLength(10)
       })
 
-      test("#then it keeps the task tool when lower-priority tools can satisfy the cap", () => {
+      test("#then it no longer keeps the removed task tool", () => {
         const result = createToolRegistry(
           createRegistryInput({
             experimental: { max_tools: 10 },
           }),
         )
 
-        expect(result.filteredTools.task).toBeDefined()
+        expect(result.filteredTools.task).toBeUndefined()
       })
     })
   })

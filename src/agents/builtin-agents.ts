@@ -5,7 +5,6 @@ import type { LoadedSkill } from "../features/opencode-skill-loader/types"
 import type { BrowserAutomationProvider } from "../config/schema"
 import { createSisyphusAgent } from "./sisyphus"
 import { createOracleAgent, ORACLE_PROMPT_METADATA } from "./oracle"
-import { createLibrarianAgent, LIBRARIAN_PROMPT_METADATA } from "./librarian"
 import { createExploreAgent, EXPLORE_PROMPT_METADATA } from "./explore"
 import { createMultimodalLookerAgent, MULTIMODAL_LOOKER_PROMPT_METADATA } from "./multimodal-looker"
 import { createMetisAgent, metisPromptMetadata } from "./metis"
@@ -33,7 +32,6 @@ const agentSources: Record<BuiltinAgentName, AgentSource> = {
   sisyphus: createSisyphusAgent,
   hephaestus: createHephaestusAgent,
   oracle: createOracleAgent,
-  librarian: createLibrarianAgent,
   explore: createExploreAgent,
   "multimodal-looker": createMultimodalLookerAgent,
   metis: createMetisAgent,
@@ -50,7 +48,6 @@ const agentSources: Record<BuiltinAgentName, AgentSource> = {
  */
 const agentMetadata: Partial<Record<BuiltinAgentName, AgentPromptMetadata>> = {
   oracle: ORACLE_PROMPT_METADATA,
-  librarian: LIBRARIAN_PROMPT_METADATA,
   explore: EXPLORE_PROMPT_METADATA,
   "multimodal-looker": MULTIMODAL_LOOKER_PROMPT_METADATA,
   metis: metisPromptMetadata,
@@ -73,6 +70,7 @@ export async function createBuiltinAgents(
   useTaskSystem = false,
   disableOmoEnv = false
 ): Promise<Record<string, AgentConfig>> {
+  const effectiveDisabledAgents = [...disabledAgents]
 
   const connectedProviders = readConnectedProvidersCache()
   const providerModelsConnected = connectedProviders
@@ -105,7 +103,7 @@ export async function createBuiltinAgents(
   const { pendingAgentConfigs, availableAgents } = collectPendingBuiltinAgents({
     agentSources,
     agentMetadata,
-    disabledAgents,
+    disabledAgents: effectiveDisabledAgents,
     agentOverrides,
     directory,
     systemDefaultModel,
@@ -120,7 +118,7 @@ export async function createBuiltinAgents(
   })
 
   const sisyphusConfig = maybeCreateSisyphusConfig({
-    disabledAgents,
+    disabledAgents: effectiveDisabledAgents,
     agentOverrides,
     uiSelectedModel,
     availableModels,
@@ -140,7 +138,7 @@ export async function createBuiltinAgents(
   }
 
   const hephaestusConfig = maybeCreateHephaestusConfig({
-    disabledAgents,
+    disabledAgents: effectiveDisabledAgents,
     agentOverrides,
     availableModels,
     systemDefaultModel,
@@ -163,7 +161,7 @@ export async function createBuiltinAgents(
   }
 
   const atlasConfig = maybeCreateAtlasConfig({
-    disabledAgents,
+    disabledAgents: effectiveDisabledAgents,
     agentOverrides,
     uiSelectedModel,
     availableModels,

@@ -9,13 +9,14 @@ export const BrowserAutomationProviderSchema = z.enum([
 
 export const BrowserAutomationConfigSchema = z.object({
   /**
-   * Browser automation provider to use for the "playwright" skill.
-   * - "playwright": Uses Playwright MCP server (@playwright/mcp) - default
-   * - "agent-browser": Uses Vercel's agent-browser CLI (requires: bun add -g agent-browser)
-   * - "dev-browser": Uses dev-browser skill with persistent browser state
-   * - "playwright-cli": Uses Playwright CLI (@playwright/cli) - token-efficient CLI alternative
+   * Browser automation provider preference for discovered browser skills.
+   * OMO no longer auto-bundles browser automation skills by default.
+   * - "playwright": Prefer a discovered Claude Code/OpenCode skill named "playwright"
+   * - "playwright-cli": Prefer discovered "playwright-cli" or canonical "playwright" skills - default
+   * - "agent-browser": Prefer a discovered "agent-browser" skill
+   * - "dev-browser": Prefer a discovered "dev-browser" skill
    */
-  provider: BrowserAutomationProviderSchema.default("playwright"),
+  provider: BrowserAutomationProviderSchema.default("playwright-cli"),
 })
 
 export type BrowserAutomationProvider = z.infer<

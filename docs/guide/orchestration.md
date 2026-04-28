@@ -90,7 +90,7 @@ Prometheus is not just a planner, it's an intelligent interviewer that helps you
 ```mermaid
 stateDiagram-v2
     [*] --> Interview: User describes work
-    Interview --> Research: Launch explore/librarian agents
+    Interview --> Research: Launch explore plus the librarian skill
     Research --> Interview: Gather codebase context
     Interview --> ClearanceCheck: After each response
 
@@ -427,7 +427,7 @@ Atlas is automatically activated when you run `/start-work`. You don't need to m
 | **Approach**    | Autonomous deep worker                     | Keyword-activated ultrawork mode                     |
 | **Best For**    | Complex architectural work, deep reasoning | General complex tasks, "just do it" scenarios        |
 | **Planning**    | Self-plans during execution                | Uses Prometheus plans if available                   |
-| **Delegation**  | Heavy use of explore/librarian agents      | Uses category-based delegation                       |
+| **Delegation**  | Heavy use of explore plus the librarian skill | Uses category-based delegation                    |
 | **Temperature** | 0.1                                        | 0.1                                                  |
 
 **When to Use Hephaestus:**

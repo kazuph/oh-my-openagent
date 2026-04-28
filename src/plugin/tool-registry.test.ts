@@ -12,37 +12,16 @@ const fakeTool = tool({
   },
 })
 
-const delegateTaskTool = tool({
-  description: "task tool",
-  args: {},
-  async execute(): Promise<string> {
-    return "ok"
-  },
-})
-
-const syncSessionCreatedCallbacks: Array<
-  ((event: { sessionID: string; parentID: string; title: string }) => Promise<void>) | undefined
-> = []
-
-const trackedPaneBySession = new Map<string, string>()
-
 const { createToolRegistry, trimToolsToCap } = await import("./tool-registry")
 
 const toolFactories: NonNullable<Parameters<typeof createToolRegistry>[0]["toolFactories"]> = {
   builtinTools: { bash: fakeTool, read: fakeTool },
-  createBackgroundTools: mock(() => ({})),
-  createCallOmoAgent: mock(() => fakeTool),
-  createLookAt: mock(() => fakeTool),
   createSkillMcpTool: mock(() => fakeTool),
   createSkillTool: mock(() => fakeTool),
   createGrepTools: mock(() => ({})),
   createGlobTools: mock(() => ({})),
   createAstGrepTools: mock(() => ({})),
   createSessionManagerTools: mock(() => ({})),
-  createDelegateTask: mock((options: { onSyncSessionCreated?: typeof syncSessionCreatedCallbacks[number] }) => {
-    syncSessionCreatedCallbacks.push(options.onSyncSessionCreated)
-    return delegateTaskTool
-  }),
   discoverCommandsSync: mock(() => []),
   interactive_bash: fakeTool,
   createTaskCreateTool: mock(() => fakeTool),
@@ -64,7 +43,6 @@ function createPluginConfig(overrides: Partial<OhMyOpenCodeConfig> = {}): OhMyOp
 }
 
 beforeEach(() => {
-  syncSessionCreatedCallbacks.length = 0
 })
 
 describe("#given tool trimming prioritization", () => {
@@ -85,8 +63,6 @@ describe("#given tool trimming prioritization", () => {
 
 describe("#given task_system configuration", () => {
   test("#when task_system is omitted #then task tools are not registered by default", () => {
-    syncSessionCreatedCallbacks.length = 0
-
     const result = createToolRegistry({
       ctx: { directory: "/tmp" } as Parameters<typeof createToolRegistry>[0]["ctx"],
       pluginConfig: createPluginConfig(),
@@ -113,8 +89,6 @@ describe("#given task_system configuration", () => {
   })
 
   test("#when task_system is enabled #then task tools are registered", () => {
-    syncSessionCreatedCallbacks.length = 0
-
     const result = createToolRegistry({
       ctx: { directory: "/tmp" } as Parameters<typeof createToolRegistry>[0]["ctx"],
       pluginConfig: createPluginConfig({
@@ -145,8 +119,6 @@ describe("#given task_system configuration", () => {
 
 describe("#given tmux integration is disabled", () => {
   test("#when system tmux is available #then interactive_bash remains registered", () => {
-    syncSessionCreatedCallbacks.length = 0
-
     const result = createToolRegistry({
       ctx: { directory: "/tmp" } as Parameters<typeof createToolRegistry>[0]["ctx"],
       pluginConfig: createPluginConfig({
@@ -179,8 +151,6 @@ describe("#given tmux integration is disabled", () => {
   })
 
   test("#when system tmux is unavailable #then interactive_bash is not registered", () => {
-    syncSessionCreatedCallbacks.length = 0
-
     const result = createToolRegistry({
       ctx: { directory: "/tmp" } as Parameters<typeof createToolRegistry>[0]["ctx"],
       pluginConfig: createPluginConfig({
@@ -210,51 +180,5 @@ describe("#given tmux integration is disabled", () => {
     })
 
     expect(result.filteredTools).not.toHaveProperty("interactive_bash")
-  })
-})
-
-describe("#given a sync task session is created", () => {
-  test("#when the sync session-created callback runs #then tmux tracking is updated", async () => {
-    syncSessionCreatedCallbacks.length = 0
-    trackedPaneBySession.clear()
-
-    const tmuxSessionManager = {
-      async onSessionCreated(event: { properties?: { info?: { id?: string } } }): Promise<void> {
-        const sessionID = event.properties?.info?.id
-        if (sessionID) {
-          trackedPaneBySession.set(sessionID, `%pane-${sessionID}`)
-        }
-      },
-      getTrackedPaneId(sessionID: string): string | undefined {
-        return trackedPaneBySession.get(sessionID)
-      },
-    }
-
-    createToolRegistry({
-      ctx: { directory: "/tmp/project" } as Parameters<typeof createToolRegistry>[0]["ctx"],
-      pluginConfig: createPluginConfig(),
-      managers: {
-        backgroundManager: {},
-        tmuxSessionManager,
-        skillMcpManager: {},
-      } as Parameters<typeof createToolRegistry>[0]["managers"],
-      skillContext: {
-        mergedSkills: [],
-        availableSkills: [],
-        browserProvider: "playwright",
-        disabledSkills: new Set(),
-      },
-      availableCategories: [],
-      toolFactories,
-    })
-
-    const onSyncSessionCreated = syncSessionCreatedCallbacks[syncSessionCreatedCallbacks.length - 1]
-    await onSyncSessionCreated?.({
-      sessionID: "ses-sync-1",
-      parentID: "ses-parent",
-      title: "sync task",
-    })
-
-    expect(trackedPaneBySession.get("ses-sync-1")).toBe("%pane-ses-sync-1")
   })
 })

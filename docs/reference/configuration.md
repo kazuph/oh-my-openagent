@@ -463,9 +463,11 @@ Enable the Sisyphus Tasks system for cross-session task tracking.
 
 Skills bring domain-specific expertise and embedded MCPs.
 
-Built-in skills: `playwright`, `playwright-cli`, `agent-browser`, `dev-browser`, `git-master`, `frontend-ui-ux`
+Built-in skills: `git-master`, `frontend-ui-ux`, `ai-slop-remover`
 
-Disable built-in skills: `{ "disabled_skills": ["playwright"] }`
+Browser automation and other external-tool skills should come from Claude Code/OpenCode skill discovery rather than OMO built-ins.
+
+Disable built-in skills: `{ "disabled_skills": ["git-master"] }`
 
 #### Skills Configuration
 
@@ -530,12 +532,16 @@ Available commands: `init-deep`, `ralph-loop`, `ulw-loop`, `cancel-ralph`, `refa
 
 ### Browser Automation
 
-| Provider               | Interface | Installation                                        |
-| ---------------------- | --------- | --------------------------------------------------- |
-| `playwright` (default) | MCP tools | Auto-installed via npx                              |
-| `agent-browser`        | Bash CLI  | `bun add -g agent-browser && agent-browser install` |
+| Provider                  | Meaning                                                                 |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `playwright-cli` (default) | Prefer discovered `playwright-cli` skills and accept canonical `playwright` |
+| `playwright`              | Prefer discovered `playwright` skills                                   |
+| `agent-browser`           | Prefer discovered `agent-browser` skills                                |
+| `dev-browser`             | Prefer discovered `dev-browser` skills                                  |
 
-Switch provider:
+This setting does not auto-install browser tooling. It only controls which discovered browser skill name OMO should prefer.
+
+Switch provider preference:
 
 ```json
 { "browser_automation_engine": { "provider": "agent-browser" } }

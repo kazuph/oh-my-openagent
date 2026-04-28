@@ -78,6 +78,28 @@ describe("keyword-detector message transform", () => {
     expect(textPart!.text).toContain("[search-mode]")
   })
 
+  test("should prepend the shared analyze message without stale delegate_task guidance", async () => {
+    // given
+    const collector = new ContextCollector()
+    const sessionID = "analyze-test-session"
+    getMainSessionSpy = spyOn(sessionState, "getMainSessionID").mockReturnValue(sessionID)
+    const hook = createKeywordDetectorHook(createMockPluginInput(), collector)
+    const output = {
+      message: {} as Record<string, unknown>,
+      parts: [{ type: "text", text: "このリポジトリを説明して" }],
+    }
+
+    // when
+    await hook["chat.message"]({ sessionID }, output)
+
+    // then
+    const textPart = output.parts.find(p => p.type === "text")
+    expect(textPart).toBeDefined()
+    expect(textPart!.text).toContain("[analyze-mode]")
+    expect(textPart!.text).toContain("SYNTHESIZE findings before proceeding.")
+    expect(textPart!.text).not.toContain("delegate_task")
+  })
+
   test("should NOT transform when no keywords detected", async () => {
     // given - no keywords in message
     const collector = new ContextCollector()

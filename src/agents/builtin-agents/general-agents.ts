@@ -6,7 +6,6 @@ import type { AvailableAgent } from "../dynamic-agent-prompt-builder"
 import { AGENT_MODEL_REQUIREMENTS, isModelAvailable } from "../../shared"
 import { buildAgent, isFactory } from "../agent-builder"
 import { applyOverrides } from "./agent-overrides"
-import { applyEnvironmentContext } from "./environment-context"
 import { applyModelResolution, getFirstFallbackModel } from "./model-resolution"
 import { log } from "../../shared/logger"
 
@@ -97,10 +96,6 @@ export function collectPendingBuiltinAgents(input: {
     // Apply resolved variant from model fallback chain
     if (resolvedVariant) {
       config = { ...config, variant: resolvedVariant }
-    }
-
-    if (agentName === "librarian") {
-      config = applyEnvironmentContext(config, directory, { disableOmoEnv })
     }
 
     config = applyOverrides(config, override, mergedCategories, directory)

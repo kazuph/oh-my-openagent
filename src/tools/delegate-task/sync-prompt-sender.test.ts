@@ -95,7 +95,7 @@ bunDescribe("sendSyncPrompt", () => {
     bunExpect(promptArgs.body.tools.call_omo_agent).toBe(false)
   })
 
-  bunTest("applies agent tool restrictions for librarian agent", async () => {
+  bunTest("applies agent tool restrictions for readonly research agents", async () => {
     //#given
     const { sendSyncPrompt } = require("./sync-prompt-sender")
 

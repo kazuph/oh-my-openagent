@@ -2,14 +2,10 @@ import type { BuiltinSkill } from "./types"
 import type { BrowserAutomationProvider } from "../../config/schema"
 
 import {
-  playwrightSkill,
-  agentBrowserSkill,
-  playwrightCliSkill,
   frontendUiUxSkill,
   gitMasterSkill,
-  devBrowserSkill,
-  reviewWorkSkill,
   aiSlopRemoverSkill,
+  librarianSkill,
 } from "./skills/index"
 
 export interface CreateBuiltinSkillsOptions {
@@ -18,18 +14,9 @@ export interface CreateBuiltinSkillsOptions {
 }
 
 export function createBuiltinSkills(options: CreateBuiltinSkillsOptions = {}): BuiltinSkill[] {
-  const { browserProvider = "playwright", disabledSkills } = options
+  const { disabledSkills } = options
 
-  let browserSkill: BuiltinSkill
-  if (browserProvider === "agent-browser") {
-    browserSkill = agentBrowserSkill
-  } else if (browserProvider === "playwright-cli") {
-    browserSkill = playwrightCliSkill
-  } else {
-    browserSkill = playwrightSkill
-  }
-
-  const skills = [browserSkill, frontendUiUxSkill, gitMasterSkill, devBrowserSkill, reviewWorkSkill, aiSlopRemoverSkill]
+  const skills = [frontendUiUxSkill, gitMasterSkill, aiSlopRemoverSkill, librarianSkill]
 
   if (!disabledSkills) {
     return skills

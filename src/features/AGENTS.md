@@ -14,7 +14,7 @@ Standalone feature modules wired into plugin/ layer. Each is self-contained with
 | **background-agent** | 47 | HIGH | Task lifecycle, concurrency (5/model), polling, spawner pattern, circuit breaker |
 | **tmux-subagent** | 34 | HIGH | Tmux pane management, grid planning, session orchestration |
 | **mcp-oauth** | 18 | HIGH | OAuth 2.0 + PKCE + DCR (RFC 7591) for MCP servers |
-| **builtin-skills** | 17 | LOW | 8 skills: git-master, playwright, playwright-cli, agent-browser, dev-browser, frontend-ui-ux, review-work, ai-slop-remover |
+| **builtin-skills** | 17 | LOW | 3 auto-loaded local-only skills: git-master, frontend-ui-ux, ai-slop-remover |
 | **skill-mcp-manager** | 18 | HIGH | Tier-3 MCP client lifecycle per session (stdio + HTTP + OAuth step-up) |
 | **claude-code-plugin-loader** | 15 | MEDIUM | Unified plugin discovery from .opencode/plugins/ |
 | **builtin-commands** | 11 | LOW | Command templates: refactor, init-deep, handoff, etc. |
@@ -57,17 +57,12 @@ State-first tmux integration:
 - Polling manager for session health
 - Event handlers for pane creation/destruction
 
-### builtin-skills (8 skill objects)
+### builtin-skills (3 auto-loaded skill objects)
 
 | Skill | Size | MCP | Tools |
 |-------|------|-----|-------|
 | git-master | 1111 LOC | — | Bash |
-| playwright | 312 LOC | @playwright/mcp | — |
-| agent-browser | (in playwright.ts) | — | Bash(agent-browser:*) |
-| playwright-cli | 268 LOC | — | Bash(playwright-cli:*) |
-| dev-browser | 221 LOC | — | Bash |
 | frontend-ui-ux | 79 LOC | — | — |
-| review-work | ~LOC | --- | --- |
 | ai-slop-remover | ~LOC | --- | --- |
 
-Browser variant selected by `browserProvider` config: playwright (default) | playwright-cli | agent-browser.
+`browserProvider` now selects which discovered external browser skill name to prefer, defaulting to `playwright-cli`.

@@ -26,7 +26,19 @@ export type SkillContext = {
   disabledSkills: Set<string>
 }
 
-const PROVIDER_GATED_SKILL_NAMES = new Set(["agent-browser", "playwright"])
+const PROVIDER_GATED_SKILL_NAMES = new Set([
+  "agent-browser",
+  "playwright",
+  "playwright-cli",
+  "dev-browser",
+])
+
+const BROWSER_PROVIDER_SKILL_NAMES: Record<BrowserAutomationProvider, ReadonlySet<string>> = {
+  playwright: new Set(["playwright"]),
+  "playwright-cli": new Set(["playwright", "playwright-cli"]),
+  "agent-browser": new Set(["agent-browser"]),
+  "dev-browser": new Set(["dev-browser"]),
+}
 
 function mapScopeToLocation(scope: SkillScope): AvailableSkill["location"] {
   if (scope === "user" || scope === "opencode") return "user"
@@ -38,12 +50,14 @@ function filterProviderGatedSkills(
   skills: LoadedSkill[],
   browserProvider: BrowserAutomationProvider,
 ): LoadedSkill[] {
+  const allowedSkillNames = BROWSER_PROVIDER_SKILL_NAMES[browserProvider]
+
   return skills.filter((skill) => {
     if (!PROVIDER_GATED_SKILL_NAMES.has(skill.name)) {
       return true
     }
 
-    return skill.name === browserProvider
+    return allowedSkillNames.has(skill.name)
   })
 }
 
@@ -54,7 +68,7 @@ export async function createSkillContext(args: {
   const { directory, pluginConfig } = args
 
   const browserProvider: BrowserAutomationProvider =
-    pluginConfig.browser_automation_engine?.provider ?? "playwright"
+    pluginConfig.browser_automation_engine?.provider ?? "playwright-cli"
 
   const disabledSkills = new Set<string>(pluginConfig.disabled_skills ?? [])
   const systemMcpNames = getSystemMcpServerNames()

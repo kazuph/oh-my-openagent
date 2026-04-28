@@ -73,7 +73,7 @@ task(
   {your interpretation of requirements}
 
   **Research Findings**:
-  {key discoveries from explore/librarian}
+  {key discoveries from explore or librarian skill-backed research}
 
   Please identify:
   1. Questions I should have asked but didn't

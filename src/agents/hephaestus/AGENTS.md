@@ -23,7 +23,7 @@
 - NEVER trusts subagent self-reports -- always verifies
 - NEVER uses `background_cancel(all=true)`
 - Delegates exploration to background agents, never sequential
-- Uses `run_in_background=true` for explore/librarian
+- Uses `run_in_background=true` for explore plus the librarian skill
 
 ## MODEL VARIANTS
 

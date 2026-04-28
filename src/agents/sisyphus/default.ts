@@ -150,7 +150,7 @@ export function buildDefaultSisyphusPrompt(
     availableSkills,
   );
   const exploreSection = buildExploreSection(availableAgents);
-  const librarianSection = buildLibrarianSection(availableAgents);
+  const librarianSection = buildLibrarianSection(availableSkills);
   const categorySkillsGuide = buildCategorySkillsDelegationGuide(
     availableCategories,
     availableSkills,
@@ -199,7 +199,7 @@ Before classifying the task, identify what the user actually wants from you as a
 
 | Surface Form | True Intent | Your Routing |
 |---|---|---|
-| "explain X", "how does Y work" | Research/understanding | explore/librarian → synthesize → answer |
+| "explain X", "how does Y work" | Research/understanding | explore + librarian skill → synthesize → answer |
 | "implement X", "add Y", "create Z" | Implementation (explicit) | plan → delegate or execute |
 | "look into X", "check Y", "investigate" | Investigation | explore → report findings |
 | "what do you think about X?" | Evaluation | evaluate → propose → **wait for confirmation** |
@@ -296,14 +296,14 @@ ${librarianSection}
 
 <tool_usage_rules>
 - Parallelize independent tool calls: multiple file reads, grep searches, agent fires - all at once
-- Explore/Librarian = background grep. ALWAYS \`run_in_background=true\`, ALWAYS parallel
-- Fire 2-5 explore/librarian agents in parallel for any non-trivial codebase question
+- Explore and librarian skill-backed research = background work. ALWAYS \`run_in_background=true\`, ALWAYS parallel
+- Fire 2-5 explore or librarian skill-backed research tasks in parallel for any non-trivial codebase question
 - Parallelize independent file reads - don't read files one at a time
 - After any write/edit tool call, briefly restate what changed, where, and what validation follows
 - Prefer tools over internal knowledge whenever you need specific data (files, configs, patterns)
 </tool_usage_rules>
 
-**Explore/Librarian = Grep, not consultants.
+**Explore and librarian skill-backed research are for parallel evidence gathering, not consultation.
 
 \`\`\`typescript
 // CORRECT: Always background, always parallel
@@ -318,12 +318,12 @@ task(subagent_type="explore", run_in_background=true, load_skills=[], descriptio
 task(subagent_type="explore", run_in_background=true, load_skills=[], description="Find error handling patterns", prompt="I'm adding error handling to the auth flow and need to follow existing error conventions exactly. I'll use this to structure my error responses and pick the right base class. Find: custom Error subclasses, error response format (JSON shape), try/catch patterns in handlers, global error middleware. Skip test files. Return the error class hierarchy and response format.")
 
 // Reference Grep (external)
-task(subagent_type="librarian", run_in_background=true, load_skills=[], description="Find JWT security docs", prompt="I'm implementing JWT auth and need current security best practices to choose token storage (httpOnly cookies vs localStorage) and set expiration policy. Find: OWASP auth guidelines, recommended token lifetimes, refresh token rotation strategies, common JWT vulnerabilities. Skip 'what is JWT' tutorials - production security guidance only.")
-task(subagent_type="librarian", run_in_background=true, load_skills=[], description="Find Express auth patterns", prompt="I'm building Express auth middleware and need production-quality patterns to structure my middleware chain. Find how established Express apps (1000+ stars) handle: middleware ordering, token refresh, role-based access control, auth error propagation. Skip basic tutorials - I need battle-tested patterns with proper error handling.")
+task(subagent_type="explore", run_in_background=true, load_skills=["librarian"], description="Find JWT security docs", prompt="I'm implementing JWT auth and need current security best practices to choose token storage (httpOnly cookies vs localStorage) and set expiration policy. Find: OWASP auth guidelines, recommended token lifetimes, refresh token rotation strategies, common JWT vulnerabilities. Skip 'what is JWT' tutorials - production security guidance only.")
+task(subagent_type="explore", run_in_background=true, load_skills=["librarian"], description="Find Express auth patterns", prompt="I'm building Express auth middleware and need production-quality patterns to structure my middleware chain. Find how established Express apps (1000+ stars) handle: middleware ordering, token refresh, role-based access control, auth error propagation. Skip basic tutorials - I need battle-tested patterns with proper error handling.")
 // Continue only with non-overlapping work. If none exists, end your response and wait for completion.
 
 // WRONG: Sequential or blocking
-result = task(..., run_in_background=false)  // Never wait synchronously for explore/librarian
+result = task(..., run_in_background=false)  // Never wait synchronously for background exploration or research
 \`\`\`
 
 ### Background Result Collection:

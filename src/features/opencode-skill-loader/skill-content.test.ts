@@ -41,15 +41,13 @@ describe("resolveSkillContent", () => {
 		expect(result).toContain("Role: Designer-Turned-Developer")
 	})
 
-	it("should return template for 'playwright' skill", () => {
-		// given: builtin skills with 'playwright' skill
+	it("should return null for removed browser built-ins", () => {
+		// given: browser skills are no longer auto-registered as built-ins
 		// when: resolving content for 'playwright'
 		const result = resolveSkillContent("playwright")
 
-		// then: returns template string
-		expect(result).not.toBeNull()
-		expect(typeof result).toBe("string")
-		expect(result).toContain("Playwright Browser Automation")
+		// then: returns null
+		expect(result).toBeNull()
 	})
 
 	it("should return null for non-existent skill", () => {
@@ -76,7 +74,7 @@ describe("resolveSkillContent", () => {
 describe("resolveMultipleSkills", () => {
 	it("should resolve all existing skills", () => {
 		// given: list of existing skill names
-		const skillNames = ["frontend-ui-ux", "playwright"]
+		const skillNames = ["frontend-ui-ux", "git-master"]
 
 		// when: resolving multiple skills
 		const result = resolveMultipleSkills(skillNames)
@@ -85,12 +83,12 @@ describe("resolveMultipleSkills", () => {
 		expect(result.resolved.size).toBe(2)
 		expect(result.notFound).toEqual([])
 		expect(result.resolved.get("frontend-ui-ux")).toContain("Designer-Turned-Developer")
-		expect(result.resolved.get("playwright")).toContain("Playwright Browser Automation")
+		expect(result.resolved.get("git-master")).toContain("Git Master Agent")
 	})
 
 	it("should handle partial success - some skills not found", () => {
 		// given: list with existing and non-existing skills
-		const skillNames = ["frontend-ui-ux", "nonexistent", "playwright", "another-missing"]
+		const skillNames = ["frontend-ui-ux", "nonexistent", "git-master", "another-missing"]
 
 		// when: resolving multiple skills
 		const result = resolveMultipleSkills(skillNames)
@@ -99,7 +97,7 @@ describe("resolveMultipleSkills", () => {
 		expect(result.resolved.size).toBe(2)
 		expect(result.notFound).toEqual(["nonexistent", "another-missing"])
 		expect(result.resolved.get("frontend-ui-ux")).toContain("Designer-Turned-Developer")
-		expect(result.resolved.get("playwright")).toContain("Playwright Browser Automation")
+		expect(result.resolved.get("git-master")).toContain("Git Master Agent")
 	})
 
 	it("should handle empty array", () => {
@@ -127,28 +125,28 @@ describe("resolveMultipleSkills", () => {
 	})
 
 	it("should treat disabled skills as not found", () => {
-		// #given: frontend-ui-ux disabled, playwright not disabled
-		const skillNames = ["frontend-ui-ux", "playwright"]
+		// #given: frontend-ui-ux disabled, git-master not disabled
+		const skillNames = ["frontend-ui-ux", "git-master"]
 		const options = { disabledSkills: new Set(["frontend-ui-ux"]) }
 
 		// #when: resolving multiple skills with disabled one
 		const result = resolveMultipleSkills(skillNames, options)
 
-		// #then: frontend-ui-ux in notFound, playwright resolved
+		// #then: frontend-ui-ux in notFound, git-master resolved
 		expect(result.resolved.size).toBe(1)
-		expect(result.resolved.has("playwright")).toBe(true)
+		expect(result.resolved.has("git-master")).toBe(true)
 		expect(result.notFound).toEqual(["frontend-ui-ux"])
 	})
 
 	it("should preserve skill order in resolved map", () => {
 		// given: list of skill names in specific order
-		const skillNames = ["playwright", "frontend-ui-ux"]
+		const skillNames = ["git-master", "frontend-ui-ux"]
 
 		// when: resolving multiple skills
 		const result = resolveMultipleSkills(skillNames)
 
 		// then: map contains skills with expected keys
-		expect(result.resolved.has("playwright")).toBe(true)
+		expect(result.resolved.has("git-master")).toBe(true)
 		expect(result.resolved.has("frontend-ui-ux")).toBe(true)
 		expect(result.resolved.size).toBe(2)
 	})
@@ -182,7 +180,7 @@ describe("resolveSkillContentAsync", () => {
 describe("resolveMultipleSkillsAsync", () => {
 	it("should resolve builtin skills async", async () => {
 		// given: builtin skill names
-		const skillNames = ["playwright", "git-master"]
+		const skillNames = ["frontend-ui-ux", "git-master"]
 
 		// when: resolving multiple skills async
 		const result = await resolveMultipleSkillsAsync(skillNames)
@@ -190,13 +188,13 @@ describe("resolveMultipleSkillsAsync", () => {
 		// then: all builtin skills resolved
 		expect(result.resolved.size).toBe(2)
 		expect(result.notFound).toEqual([])
-		expect(result.resolved.get("playwright")).toContain("Playwright Browser Automation")
+		expect(result.resolved.get("frontend-ui-ux")).toContain("Designer-Turned-Developer")
 		expect(result.resolved.get("git-master")).toContain("Git Master Agent")
 	})
 
 	it("should handle partial success with non-existent skills async", async () => {
 		// given: mix of existing and non-existing skills
-		const skillNames = ["playwright", "nonexistent-skill-12345"]
+		const skillNames = ["git-master", "nonexistent-skill-12345"]
 
 		// when: resolving multiple skills async
 		const result = await resolveMultipleSkillsAsync(skillNames)
@@ -204,20 +202,20 @@ describe("resolveMultipleSkillsAsync", () => {
 		// then: existing skills resolved, non-existing in notFound
 		expect(result.resolved.size).toBe(1)
 		expect(result.notFound).toEqual(["nonexistent-skill-12345"])
-		expect(result.resolved.get("playwright")).toContain("Playwright Browser Automation")
+		expect(result.resolved.get("git-master")).toContain("Git Master Agent")
 	})
 
 	it("should treat disabled skills as not found async", async () => {
 		// #given: frontend-ui-ux disabled
-		const skillNames = ["frontend-ui-ux", "playwright"]
+		const skillNames = ["frontend-ui-ux", "git-master"]
 		const options = { disabledSkills: new Set(["frontend-ui-ux"]) }
 
 		// #when: resolving multiple skills async with disabled one
 		const result = await resolveMultipleSkillsAsync(skillNames, options)
 
-		// #then: frontend-ui-ux in notFound, playwright resolved
+		// #then: frontend-ui-ux in notFound, git-master resolved
 		expect(result.resolved.size).toBe(1)
-		expect(result.resolved.has("playwright")).toBe(true)
+		expect(result.resolved.has("git-master")).toBe(true)
 		expect(result.notFound).toEqual(["frontend-ui-ux"])
 	})
 
@@ -372,20 +370,19 @@ describe("resolveMultipleSkillsAsync", () => {
 })
 
 describe("resolveSkillContent with browserProvider", () => {
-	it("should resolve agent-browser skill when browserProvider is 'agent-browser'", () => {
+	it("should not resolve removed browser built-ins even when browserProvider is 'agent-browser'", () => {
 		// given: browserProvider set to agent-browser
 		const options = { browserProvider: "agent-browser" as const }
 
 		// when: resolving content for 'agent-browser'
 		const result = resolveSkillContent("agent-browser", options)
 
-		// then: returns agent-browser template
-		expect(result).not.toBeNull()
-		expect(result).toContain("agent-browser")
+		// then: returns null because browser skills are no longer built-ins
+		expect(result).toBeNull()
 	})
 
 	it("should return null for agent-browser when browserProvider is default", () => {
-		// given: no browserProvider (defaults to playwright)
+		// given: no browserProvider (defaults to playwright-cli)
 
 		// when: resolving content for 'agent-browser'
 		const result = resolveSkillContent("agent-browser")
@@ -401,13 +398,13 @@ describe("resolveSkillContent with browserProvider", () => {
 		// when: resolving content for 'playwright'
 		const result = resolveSkillContent("playwright", options)
 
-		// then: returns null because playwright is replaced by agent-browser
+		// then: returns null because browser skills are no longer built-ins
 		expect(result).toBeNull()
 	})
 })
 
 describe("resolveMultipleSkills with browserProvider", () => {
-	it("should resolve agent-browser when browserProvider is set", () => {
+	it("should not resolve removed browser built-ins even when browserProvider is set", () => {
 		// given: agent-browser and git-master requested with browserProvider
 		const skillNames = ["agent-browser", "git-master"]
 		const options = { browserProvider: "agent-browser" as const }
@@ -415,10 +412,10 @@ describe("resolveMultipleSkills with browserProvider", () => {
 		// when: resolving multiple skills
 		const result = resolveMultipleSkills(skillNames, options)
 
-		// then: both resolved
-		expect(result.resolved.has("agent-browser")).toBe(true)
+		// then: only git-master resolves
+		expect(result.resolved.has("agent-browser")).toBe(false)
 		expect(result.resolved.has("git-master")).toBe(true)
-		expect(result.notFound).toHaveLength(0)
+		expect(result.notFound).toEqual(["agent-browser"])
 	})
 
 	it("should not resolve agent-browser without browserProvider option", () => {
@@ -435,21 +432,21 @@ describe("resolveMultipleSkills with browserProvider", () => {
 })
 
 describe("resolveMultipleSkillsAsync with browserProvider filtering", () => {
-	it("should exclude discovered agent-browser when browserProvider is playwright", async () => {
-		// given: playwright is the selected browserProvider (default)
+	it("should not auto-resolve browser built-ins when browserProvider is playwright", async () => {
+		// given: playwright is the selected browserProvider
 		const skillNames = ["playwright", "git-master"]
 		const options = { browserProvider: "playwright" as const }
 
 		// when: resolving multiple skills
 		const result = await resolveMultipleSkillsAsync(skillNames, options)
 
-		// then: playwright resolved, agent-browser would be excluded if discovered
-		expect(result.resolved.has("playwright")).toBe(true)
+		// then: only git-master resolves because browser skills must come from discovered sources
+		expect(result.resolved.has("playwright")).toBe(false)
 		expect(result.resolved.has("git-master")).toBe(true)
-		expect(result.notFound).not.toContain("playwright")
+		expect(result.notFound).toContain("playwright")
 	})
 
-	it("should exclude discovered playwright when browserProvider is agent-browser", async () => {
+	it("should keep local built-ins available when browserProvider is agent-browser", async () => {
 		// given: agent-browser is the selected browserProvider
 		const skillNames = ["agent-browser", "git-master"]
 		const options = { browserProvider: "agent-browser" as const }
@@ -457,9 +454,8 @@ describe("resolveMultipleSkillsAsync with browserProvider filtering", () => {
 		// when: resolving multiple skills
 		const result = await resolveMultipleSkillsAsync(skillNames, options)
 
-		// then: agent-browser resolved, playwright would be excluded if discovered
-		expect(result.resolved.has("agent-browser")).toBe(true)
+		// then: local built-ins still resolve; browser skills may or may not resolve depending on discovered external skills
 		expect(result.resolved.has("git-master")).toBe(true)
-		expect(result.notFound).not.toContain("agent-browser")
+		expect(result.notFound).not.toContain("git-master")
 	})
 })

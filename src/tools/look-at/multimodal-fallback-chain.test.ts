@@ -31,9 +31,8 @@ describe("buildMultimodalLookerFallbackChain", () => {
     expect(result[0].providers).toContain("openai")
   })
 
-  it("preserves hardcoded variant metadata for cache-derived entries", async () => {
-    // given - opencode/gpt-5.4 has a hardcoded variant "medium" in the
-    // multimodal-looker chain (post-2026-04-17 subscription-only routing)
+  it("does not attach removed hardcoded variant metadata to cache-derived entries", async () => {
+    // given - multimodal built-in fallback metadata is now empty
     const { buildMultimodalLookerFallbackChain } = await import("./multimodal-fallback-chain")
     const visionCapableModels = [{ providerID: "opencode", modelID: "gpt-5.4" }]
 
@@ -44,7 +43,6 @@ describe("buildMultimodalLookerFallbackChain", () => {
     expect(result[0]).toEqual({
       providers: ["opencode"],
       model: "gpt-5.4",
-      variant: "medium",
     })
   })
 })

@@ -1,10 +1,10 @@
-# src/tools/ - 26 Tools Across 16 Directories
+# src/tools/
 
 **Generated:** 2026-04-11
 
 ## OVERVIEW
 
-26 tools registered via `createToolRegistry()`. Two patterns: factory functions (`createXXXTool`) for 19 tools, direct `ToolDefinition` for 7 (LSP + interactive_bash).
+Current plugin-facing tools are registered via `createToolRegistry()`. Some legacy delegation helpers still exist as internal implementation modules, but `task`, `call_omo_agent`, `background_output`, `background_cancel`, and `look_at` are no longer registered by the plugin.
 
 ## TOOL CATALOG
 
@@ -16,27 +16,6 @@
 | `task_list` | `createTaskList` | (none) |
 | `task_get` | `createTaskGetTool` | id |
 | `task_update` | `createTaskUpdateTool` | id, subject, description, status, addBlocks, addBlockedBy, owner, metadata |
-
-### Delegation (1)
-
-| Tool | Factory | Parameters |
-|------|---------|------------|
-| `task` | `createDelegateTask` | description, prompt, category, subagent_type, run_in_background, session_id, load_skills, command |
-
-**8 Built-in Categories**: visual-engineering, ultrabrain, deep, artistry, quick, unspecified-low, unspecified-high, writing
-
-### Agent Invocation (1)
-
-| Tool | Factory | Parameters |
-|------|---------|------------|
-| `call_omo_agent` | `createCallOmoAgent` | description, prompt, subagent_type, run_in_background, session_id |
-
-### Background Tasks (2)
-
-| Tool | Factory | Parameters |
-|------|---------|------------|
-| `background_output` | `createBackgroundOutput` | task_id, block, timeout, full_session, include_thinking, message_limit, since_message_id, thinking_max_chars |
-| `background_cancel` | `createBackgroundCancel` | taskId, all |
 
 ### LSP Refactoring (6) - Direct ToolDefinition
 
@@ -79,26 +58,12 @@
 | Tool | Factory | Parameters |
 |------|---------|------------|
 | `interactive_bash` | Direct | tmux_command |
-| `look_at` | `createLookAt` | file_path, image_data, goal |
 
 ### Editing (1) - Conditional
 
 | Tool | Factory | Parameters |
 |------|---------|------------|
 | `hashline_edit` | `createHashlineEditTool` | file, edits[] |
-
-## DELEGATION CATEGORIES
-
-| Category | Model | Domain |
-|----------|-------|--------|
-| visual-engineering | gemini-3.1-pro high | Frontend, UI/UX |
-| ultrabrain | gpt-5.4 xhigh | Hard logic |
-| deep | gpt-5.4 medium | Autonomous problem-solving |
-| artistry | gemini-3.1-pro high | Creative approaches |
-| quick | gpt-5.4-mini | Trivial tasks |
-| unspecified-low | claude-sonnet-4-6 | Moderate effort |
-| unspecified-high | claude-opus-4-6 max | High effort |
-| writing | gemini-3-flash | Documentation |
 
 ## HOW TO ADD A TOOL
 

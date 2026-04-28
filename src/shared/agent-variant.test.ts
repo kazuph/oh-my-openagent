@@ -112,8 +112,7 @@ describe("resolveVariantForModel", () => {
     expect(variant).toBeUndefined()
   })
 
-  test("returns correct variant for openai provider (hephaestus agent)", () => {
-    // #given hephaestus has openai/gpt-5.4 with variant "medium" in its chain
+  test("returns undefined when built-in fallback variants are removed for hephaestus", () => {
     const config = {} as OhMyOpenCodeConfig
     const model = { providerID: "openai", modelID: "gpt-5.4" }
 
@@ -121,7 +120,7 @@ describe("resolveVariantForModel", () => {
     const variant = resolveVariantForModel(config, "hephaestus", model)
 
     // then
-    expect(variant).toBe("medium")
+    expect(variant).toBeUndefined()
   })
 
   test("returns undefined for gpt-5.4 when sisyphus has no fallback chain", () => {
@@ -171,7 +170,7 @@ describe("resolveVariantForModel", () => {
     expect(variant).toBeUndefined()
   })
 
-  test("falls back to category chain when agent has no requirement", () => {
+  test("does not infer a variant from category requirements when chains are empty", () => {
     // given
     const config = {
       agents: {
@@ -184,10 +183,10 @@ describe("resolveVariantForModel", () => {
     const variant = resolveVariantForModel(config, "custom-agent", model)
 
     // then
-    expect(variant).toBe("xhigh")
+    expect(variant).toBeUndefined()
   })
 
-  test("returns correct variant for oracle agent with openai", () => {
+  test("returns undefined for oracle agent with openai when no fallback chain exists", () => {
     // given
     const config = {} as OhMyOpenCodeConfig
     const model = { providerID: "openai", modelID: "gpt-5.4" }
@@ -196,10 +195,10 @@ describe("resolveVariantForModel", () => {
     const variant = resolveVariantForModel(config, "oracle", model)
 
     // then
-    expect(variant).toBe("high")
+    expect(variant).toBeUndefined()
   })
 
-  test("returns correct variant for oracle agent with anthropic", () => {
+  test("returns undefined for oracle agent with anthropic when no fallback chain exists", () => {
     // given
     const config = {} as OhMyOpenCodeConfig
     const model = { providerID: "anthropic", modelID: "claude-opus-4-6" }
@@ -208,6 +207,6 @@ describe("resolveVariantForModel", () => {
     const variant = resolveVariantForModel(config, "oracle", model)
 
     // then
-    expect(variant).toBe("max")
+    expect(variant).toBeUndefined()
   })
 })

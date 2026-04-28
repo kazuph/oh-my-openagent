@@ -94,7 +94,7 @@ describe("category-skill-reminder hook", () => {
     })
 
     test("should NOT inject reminder for non-target agents", async () => {
-      // given - librarian agent session (not a target)
+      // given - non-target session
       const hook = createHook()
       const sessionID = "librarian-session"
       updateSessionAgent(sessionID, "librarian")

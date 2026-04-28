@@ -753,8 +753,8 @@ describe("sisyphus-task", () => {
       expect(result).toBeNull()
     })
 
-    test("blocks requiresModel when availability is known and missing the required model", () => {
-      // given - artistry has requiresModel: gemini-3.1-pro
+    test("does not block categories when requiresModel guardrails are removed", () => {
+      // given
       const categoryName = "artistry"
       const availableModels = new Set<string>(["github-copilot/claude-opus-4-6"])
 
@@ -765,11 +765,12 @@ describe("sisyphus-task", () => {
       })
 
       // then
-      expect(result).toBeNull()
+      expect(result).not.toBeNull()
+      expect(result?.model).toBe("github-copilot/gemini-3.1-pro")
     })
 
-    test("blocks requiresModel when availability is empty", () => {
-      // given - artistry has requiresModel: gemini-3.1-pro
+    test("does not block categories when availability is empty", () => {
+      // given
       const categoryName = "artistry"
       const availableModels = new Set<string>()
 
@@ -780,7 +781,8 @@ describe("sisyphus-task", () => {
       })
 
       // then
-      expect(result).toBeNull()
+      expect(result).not.toBeNull()
+      expect(result?.model).toBe("github-copilot/gemini-3.1-pro")
     })
 
     test("bypasses requiresModel when explicit user config provided", () => {
@@ -2695,7 +2697,7 @@ describe("sisyphus-task", () => {
   })
 
   describe("category model resolution fallback", () => {
-    test("category uses resolved.model when connectedProvidersCache is null and availableModels is empty", async () => {
+    test("category falls back to the system default when cold-cache resolution cannot validate the category model", async () => {
       // given - connectedProvidersCache returns null (simulates missing cache file)
       // This is a regression test for PR #1227 which removed resolved.model from userModel chain
       cacheSpy.mockReturnValue(null)
@@ -2744,7 +2746,7 @@ describe("sisyphus-task", () => {
         abort: new AbortController().signal,
       }
 
-      // when - using "quick" category which should use "github-copilot/claude-haiku-4-5"
+      // when - using "quick" category which should use its built-in category model
       await tool.execute(
         {
           description: "Test category fallback",
@@ -2756,14 +2758,13 @@ describe("sisyphus-task", () => {
         toolContext
       )
 
-      // then - model should be github-copilot/claude-haiku-4-5 from DEFAULT_CATEGORIES
-      //         NOT github-copilot/claude-sonnet-4-6 (system default)
+      // then - system default wins in this cold-cache path
       expect(launchInput.model.providerID).toBe("github-copilot")
-      expect(launchInput.model.modelID).toBe("claude-haiku-4-5")
+      expect(launchInput.model.modelID).toBe("claude-sonnet-4-6")
     })
 
-    test("category delegation ignores UI-selected (Kimi) system default model", async () => {
-      // given - OpenCode system default model is Kimi (selected from UI)
+    test("category delegation uses the resolved system default model in the same cold-cache path", async () => {
+      // given
       const { createDelegateTask } = require("./tools")
       let launchInput: any
 
@@ -2809,7 +2810,7 @@ describe("sisyphus-task", () => {
         abort: new AbortController().signal,
       }
 
-      // when - using "quick" category which should use "github-copilot/claude-haiku-4-5"
+      // when
       await tool.execute(
         {
           description: "UI model inheritance test",
@@ -2821,9 +2822,9 @@ describe("sisyphus-task", () => {
         toolContext
       )
 
-      // then - category model must win (not Kimi)
+      // then
       expect(launchInput.model.providerID).toBe("github-copilot")
-      expect(launchInput.model.modelID).toBe("claude-haiku-4-5")
+      expect(launchInput.model.modelID).toBe("claude-sonnet-4-6")
     })
 
     test("sisyphus-junior model override takes precedence over category model", async () => {
@@ -3856,8 +3857,8 @@ describe("sisyphus-task", () => {
       })
     }, { timeout: 20000 })
 
-    test("agent without model resolves via fallback chain", async () => {
-      // given - agent registered without model field, fallback chain should resolve
+    test("agent without model no longer resolves via built-in fallback chain", async () => {
+      // given
       const { createDelegateTask } = require("./tools")
       let promptBody: any
 
@@ -3913,8 +3914,8 @@ describe("sisyphus-task", () => {
         toolContext
       )
 
-      // then - model should be resolved via AGENT_MODEL_REQUIREMENTS fallback chain
-      expect(promptBody.model).toBeDefined()
+      // then
+      expect(promptBody.model).toBeUndefined()
     }, { timeout: 20000 })
 
     test("agentOverrides model takes priority over matchedAgent.model (#1357)", async () => {
@@ -4048,8 +4049,8 @@ describe("sisyphus-task", () => {
       expect(promptBody.variant).toBe("max")
     }, { timeout: 20000 })
 
-    test("fallback chain resolves model when no override and no matchedAgent.model (#1357)", async () => {
-      // given - agent registered without model, no override, but AGENT_MODEL_REQUIREMENTS has fallback
+    test("agent without override or matched model stays model-less when built-in fallback chains are removed (#1357)", async () => {
+      // given
       const { createDelegateTask } = require("./tools")
       let promptBody: any
 
@@ -4108,12 +4109,8 @@ describe("sisyphus-task", () => {
         toolContext
       )
 
-      // then - should resolve via AGENT_MODEL_REQUIREMENTS fallback chain for oracle
-      // oracle fallback chain: gpt-5.4 (openai) > gemini-3.1-pro (google) > claude-opus-4-6 (anthropic)
-      // Since openai is in connectedProviders, should resolve to opencode/gpt-5.4
-      expect(promptBody.model).toBeDefined()
-      expect(promptBody.model.providerID).toBe("opencode")
-      expect(promptBody.model.modelID).toContain("gpt-5.4")
+      // then
+      expect(promptBody.model).toBeUndefined()
     }, { timeout: 20000 })
   })
 

@@ -1,14 +1,10 @@
 /**
- * Agent/model detection utilities for ultrawork message routing.
+ * Agent detection utilities for ultrawork message routing.
  *
  * Routing logic:
  * 1. Planner agents (prometheus, plan) → planner.ts
- * 2. GPT 5.4 models → gpt5.4.ts
- * 3. Gemini models → gemini.ts
- * 4. Everything else (Claude, etc.) → default.ts
+ * 2. Everything else → default.ts
  */
-
-import { isGptModel, isGeminiModel } from "../../../agents/types"
 
 /**
  * Checks if agent is a planner-type agent.
@@ -33,33 +29,20 @@ export function isNonOmoAgent(agentName?: string): boolean {
   return lowerName.includes("builder") || lowerName === "plan"
 }
 
-export { isGptModel, isGeminiModel }
-
 /** Ultrawork message source type */
-export type UltraworkSource = "planner" | "gpt" | "gemini" | "default"
+export type UltraworkSource = "planner" | "default"
 
 /**
  * Determines which ultrawork message source to use.
  */
 export function getUltraworkSource(
   agentName?: string,
-  modelID?: string
+  _modelID?: string
 ): UltraworkSource {
   // Priority 1: Planner agents
   if (isPlannerAgent(agentName)) {
     return "planner"
   }
 
-  // Priority 2: GPT models
-  if (modelID && isGptModel(modelID)) {
-    return "gpt"
-  }
-
-
-  // Priority 3: Gemini models
-  if (modelID && isGeminiModel(modelID)) {
-    return "gemini"
-  }
-  // Default: Claude and other models
   return "default"
 }

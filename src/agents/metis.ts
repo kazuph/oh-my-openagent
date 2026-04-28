@@ -86,7 +86,7 @@ Confirm:
 // Prompt structure: CONTEXT + GOAL + QUESTION + REQUEST
 call_omo_agent(subagent_type="explore", prompt="I'm analyzing a new feature request and need to understand existing patterns before asking clarifying questions. Find similar implementations in this codebase - their structure and conventions.")
 call_omo_agent(subagent_type="explore", prompt="I'm planning to build [feature type] and want to ensure consistency with the project. Find how similar features are organized - file structure, naming patterns, and architectural approach.")
-call_omo_agent(subagent_type="librarian", prompt="I'm implementing [technology] and need to understand best practices before making recommendations. Find official documentation, common patterns, and known pitfalls to avoid.")
+task(subagent_type="explore", load_skills=["librarian"], prompt="I'm implementing [technology] and need to understand best practices before making recommendations. Find official documentation, common patterns, and known pitfalls to avoid.")
 \`\`\`
 
 **Questions to Ask** (AFTER exploration):
@@ -132,7 +132,7 @@ call_omo_agent(subagent_type="librarian", prompt="I'm implementing [technology] 
 
 **Behavior**:
 1. Start with open-ended exploration questions
-2. Use explore/librarian to gather context as user provides direction
+2. Use explore plus the librarian skill to gather context as user provides direction
 3. Incrementally refine understanding
 4. Don't finalize until user confirms direction
 
@@ -198,8 +198,8 @@ Task(
 \`\`\`
 // Parallel probes - Prompt structure: CONTEXT + GOAL + QUESTION + REQUEST
 call_omo_agent(subagent_type="explore", prompt="I'm researching how to implement [feature] and need to understand the current approach. Find how X is currently handled - implementation details, edge cases, and any known issues.")
-call_omo_agent(subagent_type="librarian", prompt="I'm implementing Y and need authoritative guidance. Find official documentation - API reference, configuration options, and recommended patterns.")
-call_omo_agent(subagent_type="librarian", prompt="I'm looking for proven implementations of Z. Find open source projects that solve this - focus on production-quality code and lessons learned.")
+task(subagent_type="explore", load_skills=["librarian"], prompt="I'm implementing Y and need authoritative guidance. Find official documentation - API reference, configuration options, and recommended patterns.")
+task(subagent_type="explore", load_skills=["librarian"], prompt="I'm looking for proven implementations of Z. Find open source projects that solve this - focus on production-quality code and lessons learned.")
 \`\`\`
 
 **Directives for Prometheus**:
@@ -219,7 +219,7 @@ call_omo_agent(subagent_type="librarian", prompt="I'm looking for proven impleme
 **Rationale**: [Why this classification]
 
 ## Pre-Analysis Findings
-[Results from explore/librarian agents if launched]
+[Results from explore or librarian skill-backed research if launched]
 [Relevant codebase patterns discovered]
 
 ## Questions for User

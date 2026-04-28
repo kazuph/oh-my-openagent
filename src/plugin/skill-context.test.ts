@@ -73,9 +73,73 @@ describe("createSkillContext", () => {
 
       // then
       expect(result.browserProvider).toBe("agent-browser")
-      expect(result.mergedSkills.some((skill) => skill.name === "agent-browser")).toBe(true)
+      expect(result.mergedSkills.some((skill) => skill.name === "agent-browser")).toBe(false)
       expect(result.mergedSkills.some((skill) => skill.name === "playwright")).toBe(false)
       expect(result.availableSkills.some((skill) => skill.name === "playwright")).toBe(false)
+    } finally {
+      discoverConfigSourceSkillsSpy.mockRestore()
+      discoverUserClaudeSkillsSpy.mockRestore()
+      discoverOpencodeGlobalSkillsSpy.mockRestore()
+      discoverProjectAgentsSkillsSpy.mockRestore()
+      discoverGlobalAgentsSkillsSpy.mockRestore()
+      getSystemMcpServerNamesSpy.mockRestore()
+    }
+  })
+
+  it("accepts discovered canonical playwright skill when browser provider defaults to playwright-cli", async () => {
+    // given
+    const discoveredPlaywrightDir = join(testDirectory, ".claude", "skills", "playwright")
+    mkdirSync(discoveredPlaywrightDir, { recursive: true })
+    writeFileSync(
+      join(discoveredPlaywrightDir, "SKILL.md"),
+      [
+        "---",
+        "name: playwright",
+        "description: Discovered canonical playwright skill",
+        "---",
+        "Discovered playwright body.",
+        "",
+      ].join("\n"),
+    )
+
+    const discoverConfigSourceSkillsSpy = spyOn(
+      skillLoader,
+      "discoverConfigSourceSkills",
+    ).mockResolvedValue([])
+    const discoverUserClaudeSkillsSpy = spyOn(
+      skillLoader,
+      "discoverUserClaudeSkills",
+    ).mockResolvedValue([])
+    const discoverOpencodeGlobalSkillsSpy = spyOn(
+      skillLoader,
+      "discoverOpencodeGlobalSkills",
+    ).mockResolvedValue([])
+    const discoverProjectAgentsSkillsSpy = spyOn(
+      skillLoader,
+      "discoverProjectAgentsSkills",
+    ).mockResolvedValue([])
+    const discoverGlobalAgentsSkillsSpy = spyOn(
+      skillLoader,
+      "discoverGlobalAgentsSkills",
+    ).mockResolvedValue([])
+    const getSystemMcpServerNamesSpy = spyOn(
+      mcpLoader,
+      "getSystemMcpServerNames",
+    ).mockReturnValue(new Set<string>())
+
+    const pluginConfig = OhMyOpenCodeConfigSchema.parse({})
+
+    try {
+      // when
+      const result = await createSkillContext({
+        directory: testDirectory,
+        pluginConfig,
+      })
+
+      // then
+      expect(result.browserProvider).toBe("playwright-cli")
+      expect(result.mergedSkills.some((skill) => skill.name === "playwright")).toBe(true)
+      expect(result.availableSkills.some((skill) => skill.name === "playwright")).toBe(true)
     } finally {
       discoverConfigSourceSkillsSpy.mockRestore()
       discoverUserClaudeSkillsSpy.mockRestore()

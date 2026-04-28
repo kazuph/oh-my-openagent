@@ -44,7 +44,7 @@ ${keyTriggers.join("\n")}
 export function buildToolSelectionTable(
   agents: AvailableAgent[],
   tools: AvailableTool[] = [],
-  _skills: AvailableSkill[] = [],
+  skills: AvailableSkill[] = [],
 ): string {
   const rows: string[] = ["### Tool & Agent Selection:", ""]
 
@@ -68,8 +68,14 @@ export function buildToolSelectionTable(
     )
   }
 
+  const hasLibrarianSkill = skills.some((skill) => skill.name === "librarian")
+
   rows.push("")
-  rows.push("**Default flow**: explore/librarian (background) + tools → oracle (if required)")
+  rows.push(
+    hasLibrarianSkill
+      ? "**Default flow**: explore + `librarian` skill (when external refs matter) + tools → oracle (if required)"
+      : "**Default flow**: explore + tools → oracle (if required)"
+  )
 
   return rows.join("\n")
 }
@@ -96,23 +102,22 @@ ${avoidWhen.map((entry) => `- ${entry}`).join("\n")}
 ${useWhen.map((entry) => `- ${entry}`).join("\n")}`
 }
 
-export function buildLibrarianSection(agents: AvailableAgent[]): string {
-  const librarianAgent = agents.find((agent) => agent.name === "librarian")
-  if (!librarianAgent) {
+export function buildLibrarianSection(skills: AvailableSkill[]): string {
+  const librarianSkill = skills.find((skill) => skill.name === "librarian")
+  if (!librarianSkill) {
     return ""
   }
 
-  const useWhen = librarianAgent.metadata.useWhen || []
+  return `### Librarian Skill = Reference Research
 
-  return `### Librarian Agent = Reference Grep
+Load \`librarian\` when you need **external references** such as official docs, OSS examples, GitHub history, or permalink-backed evidence.
 
-Search **external references** (docs, OSS, web). Fire proactively when unfamiliar libraries are involved.
+**Contextual Grep (Internal)** - search OUR codebase for local patterns and project logic.
+**Reference Research (External)** - load \`librarian\` and research official docs, OSS implementation examples, issues, PRs, and release notes.
 
-**Contextual Grep (Internal)** - search OUR codebase, find patterns in THIS repo, project-specific logic.
-**Reference Grep (External)** - search EXTERNAL resources, official API docs, library best practices, OSS implementation examples.
-
-**Trigger phrases** (fire librarian immediately):
-${useWhen.map((entry) => `- "${entry}"`).join("\n")}`
+**How to use it:**
+- \`task(subagent_type="explore", load_skills=["librarian"], run_in_background=true, ...)\`
+- \`task(category="...", load_skills=["librarian"], run_in_background=true, ...)\` when a category worker is a better fit`
 }
 
 export function buildDelegationTable(agents: AvailableAgent[]): string {

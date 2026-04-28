@@ -4,23 +4,17 @@
  * Orchestrates work via task() to complete ALL tasks in a todo list until fully done.
  * You are the conductor of a symphony of specialized agents.
  *
- * Routing:
- * 1. GPT models (openai/*, github-copilot/gpt-*) → gpt.ts (GPT-5.4 optimized)
- * 2. Gemini models (google/*, google-vertex/*) → gemini.ts (Gemini-optimized)
- * 3. Default (Claude, etc.) → default.ts (Claude-optimized)
+ * Uses a single default prompt path.
  */
 
 import type { AgentConfig } from "@opencode-ai/sdk"
 import type { AgentMode, AgentPromptMetadata } from "../types"
-import { isGptModel, isGeminiModel } from "../types"
 import type { AvailableAgent, AvailableSkill, AvailableCategory } from "../dynamic-agent-prompt-builder"
 import { buildAgentIdentitySection, buildCategorySkillsDelegationGuide } from "../dynamic-agent-prompt-builder"
 import type { CategoryConfig } from "../../config/schema"
 import { mergeCategories } from "../../shared/merge-categories"
 
 import { getDefaultAtlasPrompt } from "./default"
-import { getGptAtlasPrompt } from "./gpt"
-import { getGeminiAtlasPrompt } from "./gemini"
 import {
   getCategoryDescription,
   buildAgentSelectionSection,
@@ -30,21 +24,6 @@ import {
 } from "./prompt-section-builder"
 
 const MODE: AgentMode = "primary"
-
-export type AtlasPromptSource = "default" | "gpt" | "gemini"
-
-/**
- * Determines which Atlas prompt to use based on model.
- */
-export function getAtlasPromptSource(model?: string): AtlasPromptSource {
-  if (model && isGptModel(model)) {
-    return "gpt"
-  }
-  if (model && isGeminiModel(model)) {
-    return "gemini"
-  }
-  return "default"
-}
 
 export interface OrchestratorContext {
   model?: string
@@ -57,17 +36,8 @@ export interface OrchestratorContext {
  * Gets the appropriate Atlas prompt based on model.
  */
 export function getAtlasPrompt(model?: string): string {
-  const source = getAtlasPromptSource(model)
-
-  switch (source) {
-    case "gpt":
-      return getGptAtlasPrompt()
-    case "gemini":
-      return getGeminiAtlasPrompt()
-    case "default":
-    default:
-      return getDefaultAtlasPrompt()
-  }
+  void model
+  return getDefaultAtlasPrompt()
 }
 
 function buildDynamicOrchestratorPrompt(ctx?: OrchestratorContext): string {

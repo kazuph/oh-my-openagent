@@ -27,7 +27,7 @@ export function buildAntiPatternsSection(): string {
     "- **Search**: Firing agents for single-line typos or obvious syntax errors",
     "- **Debugging**: Shotgun debugging, random changes",
     "- **Background Tasks**: Polling `background_output` on running tasks - end response and wait for notification",
-    "- **Delegation Duplication**: Delegating exploration to explore/librarian and then manually doing the same search yourself",
+    "- **Delegation Duplication**: Delegating exploration to explore or librarian skill-backed research and then manually doing the same search yourself",
     "- **Oracle**: Delivering answer without collecting Oracle results",
   ]
 
@@ -128,12 +128,12 @@ export function buildAntiDuplicationSection(): string {
   return `<Anti_Duplication>
 ## Anti-Duplication Rule (CRITICAL)
 
-Once you delegate exploration to explore/librarian agents, **DO NOT perform the same search yourself**.
+Once you delegate exploration to explore or librarian skill-backed research, **DO NOT perform the same search yourself**.
 
 ### What this means:
 
 **FORBIDDEN:**
-- After firing explore/librarian, manually grep/search for the same information
+- After firing explore or librarian skill-backed research, manually grep/search for the same information
 - Re-doing the research the agents were just tasked with
 - "Just quickly checking" the same files the background agents are checking
 
