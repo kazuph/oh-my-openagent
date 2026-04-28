@@ -33,6 +33,7 @@ import { clearSessionModel, getSessionModel, setSessionModel } from "../shared/s
 import { clearSessionPromptParams } from "../shared/session-prompt-params-state";
 import { deleteSessionTools } from "../shared/session-tools-store";
 import { lspManager } from "../tools";
+import { saveLastSelectedMainModel } from "../shared/last-selected-main-model-state";
 
 import type { CreatedHooks } from "../create-hooks";
 import type { Managers } from "../create-managers";
@@ -282,6 +283,13 @@ export function createEventHandler(args: {
     return !subagentSessions.has(sessionID);
   };
 
+  const shouldPersistLastSelectedModel = (sessionID: string): boolean => {
+    if (subagentSessions.has(sessionID)) return false;
+    const mainSessionID = getMainSessionID();
+    if (mainSessionID) return sessionID === mainSessionID;
+    return true;
+  };
+
   const autoContinueAfterFallback = async (sessionID: string, source: string): Promise<void> => {
     await pluginContext.client.session.abort({ path: { id: sessionID } }).catch((error) => {
       log("[event] model-fallback abort failed", { sessionID, source, error });
@@ -425,6 +433,9 @@ export function createEventHandler(args: {
         if (providerID && modelID && !isCompactionMessage) {
           lastKnownModelBySession.set(sessionID, { providerID, modelID });
           setSessionModel(sessionID, { providerID, modelID });
+          if (shouldPersistLastSelectedModel(sessionID)) {
+            saveLastSelectedMainModel({ providerID, modelID });
+          }
         }
       }
 

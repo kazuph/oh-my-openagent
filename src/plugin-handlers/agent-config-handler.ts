@@ -32,6 +32,7 @@ import {
 import { buildPrometheusAgentConfig } from "./prometheus-agent-config-builder";
 import { buildPlanDemoteConfig } from "./plan-model-inheritance";
 import { inferEffectiveModel } from "./infer-effective-model";
+import { loadLastSelectedMainModel } from "../shared/last-selected-main-model-state";
 
 type AgentConfigRecord = Record<string, Record<string, unknown> | undefined> & {
   build?: Record<string, unknown>;
@@ -43,6 +44,20 @@ function getConfiguredDefaultAgent(config: Record<string, unknown>): string | un
   if (typeof defaultAgent !== "string") return undefined;
   const trimmedDefaultAgent = defaultAgent.trim();
   return trimmedDefaultAgent.length > 0 ? trimmedDefaultAgent : undefined;
+}
+
+function resolveStartupModel(config: Record<string, unknown>): string | undefined {
+  const configuredModel = config.model
+  if (typeof configuredModel === "string" && configuredModel.trim().length > 0) {
+    return configuredModel.trim()
+  }
+
+  const lastSelectedModel = loadLastSelectedMainModel()
+  if (lastSelectedModel) {
+    return `${lastSelectedModel.providerID}/${lastSelectedModel.modelID}`
+  }
+
+  return inferEffectiveModel(config)
 }
 
 export async function applyAgentConfig(params: {
@@ -95,7 +110,7 @@ export async function applyAgentConfig(params: {
 
   const browserProvider =
     params.pluginConfig.browser_automation_engine?.provider ?? "playwright";
-  const currentModel = inferEffectiveModel(params.config);
+  const currentModel = resolveStartupModel(params.config);
   const disabledSkills = new Set<string>(params.pluginConfig.disabled_skills ?? []);
   const useTaskSystem = isTaskSystemEnabled(params.pluginConfig);
   const disableOmoEnv = params.pluginConfig.experimental?.disable_omo_env ?? false;

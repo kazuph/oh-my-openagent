@@ -5,6 +5,7 @@ import { createChatMessageHandler } from "./chat-message"
 import { _resetForTesting, setMainSession } from "../features/claude-code-session-state"
 import { clearPendingModelFallback, createModelFallbackHook } from "../hooks/model-fallback/hook"
 import { getSessionPromptParams, setSessionPromptParams } from "../shared/session-prompt-params-state"
+import * as lastSelectedMainModelState from "../shared/last-selected-main-model-state"
 
 type EventInput = { event: { type: string; properties?: unknown } }
 type EventHandlerArgs = Parameters<typeof createEventHandler>[0]
@@ -380,6 +381,42 @@ afterEach(() => {
 		expect(dispatchCalls[0].event.type).toBe("session.idle")
 		expect(dispatchCalls[1].event.type).toBe("session.idle")
 	})
+})
+
+describe("createEventHandler - last selected model persistence", () => {
+  it("persists the main-session user-selected model on user message updates", async () => {
+    const saveSpy = spyOn(lastSelectedMainModelState, "saveLastSelectedMainModel").mockImplementation(() => {})
+    setMainSession("ses_main")
+    const eventHandler = createEventHandler({
+      ctx: asEventHandlerContext({}),
+      pluginConfig: asPluginConfig({}),
+      firstMessageVariantGate: {
+        markSessionCreated: () => {},
+        clear: () => {},
+      },
+      managers: createEventHandlerManagers(),
+      hooks: createEventHandlerHooks({}),
+    })
+
+    await eventHandler(asEventHandlerInput({
+      event: {
+        type: "message.updated",
+        properties: {
+          info: {
+            sessionID: "ses_main",
+            role: "user",
+            providerID: "openai",
+            modelID: "gpt-5.4",
+          },
+        },
+      },
+    }))
+
+    expect(saveSpy).toHaveBeenCalledWith({
+      providerID: "openai",
+      modelID: "gpt-5.4",
+    })
+  })
 })
 
 describe("createEventHandler - event forwarding", () => {

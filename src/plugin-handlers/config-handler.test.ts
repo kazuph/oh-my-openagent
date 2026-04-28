@@ -17,6 +17,7 @@ import * as pluginLoader from "../features/claude-code-plugin-loader"
 import * as mcpModule from "../mcp"
 import * as shared from "../shared"
 import * as configDir from "../shared/opencode-config-dir"
+import * as lastSelectedMainModelState from "../shared/last-selected-main-model-state"
 import * as permissionCompat from "../shared/permission-compat"
 import * as modelResolver from "../shared/model-resolver"
 import * as configErrors from "../shared/config-errors"
@@ -91,6 +92,7 @@ beforeEach(async () => {
   spyOn(shared, "log" as any).mockImplementation(() => {})
   spyOn(shared, "fetchAvailableModels" as any).mockResolvedValue(new Set(["anthropic/claude-opus-4-6"]))
   spyOn(shared, "readConnectedProvidersCache" as any).mockReturnValue(null)
+  spyOn(lastSelectedMainModelState, "loadLastSelectedMainModel").mockReturnValue(null)
 
   spyOn(configDir, "getOpenCodeConfigPaths" as any).mockReturnValue({
     global: "/tmp/.config/opencode",
@@ -562,6 +564,50 @@ describe("default_agent behavior with Sisyphus orchestration", () => {
     expect(createBuiltinAgentsMock.mock.calls.at(-1)?.[3]).toBe(inferredModel)
     expect(createBuiltinAgentsMock.mock.calls.at(-1)?.[9]).toBe(inferredModel)
     expect(config.default_agent).toBe(getAgentRuntimeName("sisyphus"))
+  })
+
+  test("prefers the saved last selected model over provider-order inference when config.model is missing", async () => {
+    const createBuiltinAgentsMock = agents.createBuiltinAgents as unknown as {
+      mockResolvedValue: (value: Record<string, unknown>) => void
+      mock: { calls: unknown[][] }
+    }
+    createBuiltinAgentsMock.mockResolvedValue({
+      sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
+      hephaestus: { name: "hephaestus", prompt: "test", mode: "primary" },
+      atlas: { name: "atlas", prompt: "test", mode: "primary" },
+    })
+    ;(lastSelectedMainModelState.loadLastSelectedMainModel as unknown as { mockReturnValue: (value: unknown) => void })
+      .mockReturnValue({
+        providerID: "openai",
+        modelID: "gpt-5.4",
+      })
+
+    const pluginConfig = createPluginConfig({})
+    const config: Record<string, unknown> = {
+      provider: {
+        "qwen-local": {
+          models: {
+            "qwen3.6-35b-a3b-tqplus-q4km": {
+              name: "Q3.6 35B",
+            },
+          },
+        },
+      },
+      agent: {},
+    }
+    const handler = createConfigHandler({
+      ctx: { directory: "/tmp" },
+      pluginConfig,
+      modelCacheState: {
+        anthropicContext1MEnabled: false,
+        modelContextLimitsCache: new Map(),
+      },
+    })
+
+    await handler(config)
+
+    expect(createBuiltinAgentsMock.mock.calls.at(-1)?.[3]).toBe("openai/gpt-5.4")
+    expect(createBuiltinAgentsMock.mock.calls.at(-1)?.[9]).toBe("openai/gpt-5.4")
   })
 
   test("canonicalizes configured default_agent with surrounding whitespace", async () => {
