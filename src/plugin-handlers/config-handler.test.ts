@@ -1243,11 +1243,7 @@ describe("Plan agent model inheritance from prometheus", () => {
 
   test("plan agent stays model-less when prometheus has no explicit model to inherit", async () => {
     //#given
-    spyOn(shared, "resolveModelPipeline" as any).mockReturnValue({
-      model: "anthropic/claude-opus-4-6",
-      provenance: "provider-fallback",
-      variant: "max",
-    })
+    spyOn(shared, "resolveModelPipeline" as any).mockReturnValue(undefined)
     const pluginConfig = createPluginConfig({
       sisyphus_agent: {
         planner_enabled: true,
