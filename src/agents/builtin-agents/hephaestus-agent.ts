@@ -2,18 +2,13 @@ import type { AgentConfig } from "@opencode-ai/sdk"
 import type { AgentOverrides } from "../types"
 import type { CategoryConfig } from "../../config/schema"
 import type { AvailableAgent, AvailableCategory, AvailableSkill } from "../dynamic-agent-prompt-builder"
-import { AGENT_MODEL_REQUIREMENTS, isAnyProviderConnected } from "../../shared"
 import { createHephaestusAgent } from "../hephaestus"
 import { applyEnvironmentContext } from "./environment-context"
 import { applyCategoryOverride, mergeAgentConfig } from "./agent-overrides"
-import { applyModelResolution, getFirstFallbackModel } from "./model-resolution"
 
 export function maybeCreateHephaestusConfig(input: {
   disabledAgents: string[]
   agentOverrides: AgentOverrides
-  availableModels: Set<string>
-  systemDefaultModel?: string
-  isFirstRunNoCache: boolean
   availableAgents: AvailableAgent[]
   availableSkills: AvailableSkill[]
   availableCategories: AvailableCategory[]
@@ -25,9 +20,6 @@ export function maybeCreateHephaestusConfig(input: {
   const {
     disabledAgents,
     agentOverrides,
-    availableModels,
-    systemDefaultModel,
-    isFirstRunNoCache,
     availableAgents,
     availableSkills,
     availableCategories,
@@ -40,45 +32,14 @@ export function maybeCreateHephaestusConfig(input: {
   if (disabledAgents.includes("hephaestus")) return undefined
 
   const hephaestusOverride = agentOverrides["hephaestus"]
-  const hephaestusRequirement = AGENT_MODEL_REQUIREMENTS["hephaestus"]
-  const hasHephaestusExplicitConfig = hephaestusOverride !== undefined
-
-  const hasRequiredProvider =
-    !hephaestusRequirement?.requiresProvider ||
-    hasHephaestusExplicitConfig ||
-    isFirstRunNoCache ||
-    isAnyProviderConnected(hephaestusRequirement.requiresProvider, availableModels)
-
-  if (!hasRequiredProvider) return undefined
-
-  let hephaestusResolution = applyModelResolution({
-    userModel: hephaestusOverride?.model,
-    requirement: hephaestusRequirement,
-    availableModels,
-    systemDefaultModel,
-  })
-
-  if (
-    isFirstRunNoCache
-    && !hephaestusOverride?.model
-    && (hephaestusRequirement?.fallbackChain?.length ?? 0) > 0
-  ) {
-    hephaestusResolution = getFirstFallbackModel(hephaestusRequirement)
-  }
-
-  if (!hephaestusResolution) return undefined
-  const { model: hephaestusModel, variant: hephaestusResolvedVariant } = hephaestusResolution
 
   let hephaestusConfig = createHephaestusAgent(
-    hephaestusModel,
     availableAgents,
     undefined,
     availableSkills,
     availableCategories,
     useTaskSystem
   )
-
-  hephaestusConfig = { ...hephaestusConfig, variant: hephaestusResolvedVariant ?? "medium" }
 
   const hepOverrideCategory = (hephaestusOverride as Record<string, unknown> | undefined)?.category as string | undefined
   if (hepOverrideCategory) {

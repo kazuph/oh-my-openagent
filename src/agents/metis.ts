@@ -299,12 +299,11 @@ const metisRestrictions = createAgentToolRestrictions([
   "task",
 ])
 
-export function createMetisAgent(model: string): AgentConfig {
+export function createMetisAgent(): AgentConfig {
   return {
     description:
       "Pre-planning consultant that analyzes requests to identify hidden intentions, ambiguities, and AI failure points. (Metis - OhMyOpenCode)",
     mode: MODE,
-    model,
     temperature: 0.3,
     ...metisRestrictions,
     prompt: METIS_SYSTEM_PROMPT,

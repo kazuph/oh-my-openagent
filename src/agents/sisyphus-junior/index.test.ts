@@ -18,7 +18,6 @@ describe("createSisyphusJuniorAgentWithOverrides", () => {
     })
 
     // then
-    expect(result.model).toBe("openai/gpt-5.4")
     expect(result.temperature).toBe(0.5)
     expect(result.top_p).toBe(0.9)
     expect(result.description).toBe("Custom description")
@@ -36,7 +35,6 @@ describe("createSisyphusJuniorAgentWithOverrides", () => {
     })
 
     // then
-    expect(result.model).toBe(SISYPHUS_JUNIOR_DEFAULTS.model)
     expect(result.temperature).toBe(SISYPHUS_JUNIOR_DEFAULTS.temperature)
   })
 
@@ -85,8 +83,8 @@ describe("createSisyphusJuniorAgentWithOverrides", () => {
 
   test("switches between todo and task discipline via useTaskSystem", () => {
     // when
-    const todoResult = createSisyphusJuniorAgentWithOverrides({}, undefined, false)
-    const taskResult = createSisyphusJuniorAgentWithOverrides({}, undefined, true)
+    const todoResult = createSisyphusJuniorAgentWithOverrides({}, false)
+    const taskResult = createSisyphusJuniorAgentWithOverrides({}, true)
 
     // then
     expect(todoResult.prompt).toContain("todowrite")
@@ -100,8 +98,8 @@ describe("createSisyphusJuniorAgentWithOverrides", () => {
 describe("buildSisyphusJuniorPrompt", () => {
   test("uses a single default prompt path across model strings", () => {
     // when
-    const gptPrompt = buildSisyphusJuniorPrompt("openai/gpt-5.4", false)
-    const claudePrompt = buildSisyphusJuniorPrompt("anthropic/claude-sonnet-4-6", false)
+    const gptPrompt = buildSisyphusJuniorPrompt(false)
+    const claudePrompt = buildSisyphusJuniorPrompt(false)
 
     // then
     expect(gptPrompt).toBe(claudePrompt)

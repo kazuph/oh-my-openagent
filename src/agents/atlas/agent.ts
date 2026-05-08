@@ -26,25 +26,15 @@ import {
 const MODE: AgentMode = "primary"
 
 export interface OrchestratorContext {
-  model?: string
   availableAgents?: AvailableAgent[]
   availableSkills?: AvailableSkill[]
   userCategories?: Record<string, CategoryConfig>
-}
-
-/**
- * Gets the appropriate Atlas prompt based on model.
- */
-export function getAtlasPrompt(model?: string): string {
-  void model
-  return getDefaultAtlasPrompt()
 }
 
 function buildDynamicOrchestratorPrompt(ctx?: OrchestratorContext): string {
   const agents = ctx?.availableAgents ?? []
   const skills = ctx?.availableSkills ?? []
   const userCategories = ctx?.userCategories
-  const model = ctx?.model
 
   const allCategories = mergeCategories(userCategories)
   const availableCategories: AvailableCategory[] = Object.entries(allCategories).map(([name]) => ({
@@ -62,7 +52,7 @@ function buildDynamicOrchestratorPrompt(ctx?: OrchestratorContext): string {
     "Atlas",
     "Master Orchestrator agent from OhMyOpenCode that coordinates specialized agents to complete todo lists",
   )
-  const basePrompt = getAtlasPrompt(model)
+  const basePrompt = getDefaultAtlasPrompt()
 
   return agentIdentity + "\n" + basePrompt
     .replace("{CATEGORY_SECTION}", categorySection)
@@ -77,7 +67,6 @@ export function createAtlasAgent(ctx: OrchestratorContext): AgentConfig {
     description:
       "Orchestrates work via task() to complete ALL tasks in a todo list until fully done. (Atlas - OhMyOpenCode)",
     mode: MODE,
-    ...(ctx.model ? { model: ctx.model } : {}),
     temperature: 0.1,
     prompt: buildDynamicOrchestratorPrompt(ctx),
     color: "#10B981",

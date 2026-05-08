@@ -170,17 +170,15 @@ export async function applyAgentConfig(params: {
     }
   );
 
-  const builtinAgents = await createBuiltinAgents(
+  const builtinAgents = createBuiltinAgents(
     migratedDisabledAgents,
     params.pluginConfig.agents,
     params.ctx.directory,
-    currentModel,
     params.pluginConfig.categories,
     params.pluginConfig.git_master,
     allDiscoveredSkills,
     customAgentSummaries,
     browserProvider,
-    currentModel,
     disabledSkills,
     useTaskSystem,
     disableOmoEnv,
@@ -241,7 +239,6 @@ export async function applyAgentConfig(params: {
 
     agentConfig["sisyphus-junior"] = createSisyphusJuniorAgentWithOverrides(
       params.pluginConfig.agents?.["sisyphus-junior"],
-      (builtinAgents.atlas as { model?: string } | undefined)?.model,
       useTaskSystem,
     );
 

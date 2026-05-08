@@ -13,22 +13,18 @@ export function isFactory(source: AgentSource): source is AgentFactory {
 
 export function buildAgent(
   source: AgentSource,
-  model: string,
   categories?: CategoriesConfig,
   gitMasterConfig?: GitMasterConfig,
   browserProvider?: BrowserAutomationProvider,
   disabledSkills?: Set<string>
 ): AgentConfig {
-  const base = isFactory(source) ? source(model) : { ...source }
+  const base = isFactory(source) ? source() : { ...source }
   const categoryConfigs: Record<string, CategoryConfig> = mergeCategories(categories)
 
   const agentWithCategory = base as AgentConfig & { category?: string; skills?: string[]; variant?: string }
   if (agentWithCategory.category) {
     const categoryConfig = categoryConfigs[agentWithCategory.category]
     if (categoryConfig) {
-      if (!base.model) {
-        base.model = categoryConfig.model
-      }
       if (base.temperature === undefined && categoryConfig.temperature !== undefined) {
         base.temperature = categoryConfig.temperature
       }

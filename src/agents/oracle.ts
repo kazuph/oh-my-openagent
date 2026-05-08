@@ -241,7 +241,7 @@ Before finalizing answers on architecture, security, or performance: re-scan for
 Your response goes directly to the user with no intermediate processing. Make your final message self-contained: a clear recommendation they can act on immediately, covering both what to do and why. Dense and useful beats long and thorough. Deliver actionable insight, not exhaustive analysis.
 </delivery>`;
 
-export function createOracleAgent(model: string): AgentConfig {
+export function createOracleAgent(): AgentConfig {
   const restrictions = createAgentToolRestrictions([
     "write",
     "edit",
@@ -253,7 +253,6 @@ export function createOracleAgent(model: string): AgentConfig {
     description:
       "Read-only consultation agent. High-IQ reasoning specialist for debugging hard problems and high-difficulty architecture design. (Oracle - OhMyOpenCode)",
     mode: MODE,
-    model,
     temperature: 0.1,
     ...restrictions,
     prompt: ORACLE_DEFAULT_PROMPT,

@@ -46,7 +46,7 @@ describe("delegation trust prompt rules", () => {
 
   test("Sisyphus prompt forbids duplicate delegated exploration", () => {
     // given
-    const agent = createSisyphusAgent("anthropic/claude-sonnet-4-6", [exploreAgent])
+    const agent = createSisyphusAgent()
 
     // when
     const prompt = agent.prompt
@@ -58,7 +58,7 @@ describe("delegation trust prompt rules", () => {
 
   test("Hephaestus prompt forbids duplicate delegated exploration", () => {
     // given
-    const agent = createHephaestusAgent("openai/gpt-5.2", [exploreAgent])
+    const agent = createHephaestusAgent()
 
     // when
     const prompt = agent.prompt
@@ -70,7 +70,7 @@ describe("delegation trust prompt rules", () => {
 
   test("Hephaestus GPT-5.4 prompt forbids duplicate delegated exploration", () => {
     // given
-    const agent = createHephaestusAgent("openai/gpt-5.4", [exploreAgent])
+    const agent = createHephaestusAgent()
 
     // when
     const prompt = agent.prompt
@@ -82,7 +82,7 @@ describe("delegation trust prompt rules", () => {
 
   test("Hephaestus GPT-5.3 Codex prompt forbids duplicate delegated exploration", () => {
     // given
-    const agent = createHephaestusAgent("openai/gpt-5.3-codex", [exploreAgent])
+    const agent = createHephaestusAgent()
 
     // when
     const prompt = agent.prompt
@@ -94,7 +94,7 @@ describe("delegation trust prompt rules", () => {
 
   test("Sisyphus-Junior GPT prompt forbids duplicate delegated exploration", () => {
     // given
-    const prompt = buildSisyphusJuniorPrompt("openai/gpt-5.2", false)
+    const prompt = buildSisyphusJuniorPrompt(false)
 
     // when / then
     expect(prompt).toContain("Continue with **non-overlapping work**")
@@ -103,7 +103,7 @@ describe("delegation trust prompt rules", () => {
 
   test("Sisyphus GPT-5.4 prompt forbids duplicate delegated exploration", () => {
     // given
-    const agent = createSisyphusAgent("openai/gpt-5.4", [exploreAgent])
+    const agent = createSisyphusAgent()
 
     // when
     const prompt = agent.prompt
@@ -115,7 +115,7 @@ describe("delegation trust prompt rules", () => {
 
   test("Sisyphus-Junior GPT-5.4 prompt forbids duplicate delegated exploration", () => {
     // given
-    const prompt = buildSisyphusJuniorPrompt("openai/gpt-5.4", false)
+    const prompt = buildSisyphusJuniorPrompt(false)
 
     // when / then
     expect(prompt).toContain("Continue with **non-overlapping work**")
@@ -124,7 +124,7 @@ describe("delegation trust prompt rules", () => {
 
   test("Sisyphus-Junior GPT-5.3 Codex prompt forbids duplicate delegated exploration", () => {
     // given
-    const prompt = buildSisyphusJuniorPrompt("openai/gpt-5.3-codex", false)
+    const prompt = buildSisyphusJuniorPrompt(false)
 
     // when / then
     expect(prompt).toContain("Continue with **non-overlapping work**")
@@ -133,7 +133,7 @@ describe("delegation trust prompt rules", () => {
 
   test("Sisyphus-Junior Gemini prompt forbids duplicate delegated exploration", () => {
     // given
-    const prompt = buildSisyphusJuniorPrompt("google/gemini-3.1-pro", false)
+    const prompt = buildSisyphusJuniorPrompt(false)
 
     // when / then
     expect(prompt).toContain("Continue with **non-overlapping work**")

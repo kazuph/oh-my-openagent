@@ -13,21 +13,12 @@ describe("createBuiltinAgents custom agent visibility", () => {
 
 		try {
 			//#when
-			const agents = await createBuiltinAgents(
-				[],
-				{},
-				undefined,
-				TEST_DEFAULT_MODEL,
-				undefined,
-				undefined,
-				[],
-				[
+			const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], [
 					{
 						name: "backend-engineer",
 						description: "Custom backend specialist",
 					},
-				]
-			)
+				])
 
 			//#then
 			expect(agents.sisyphus.prompt).not.toContain("backend-engineer")

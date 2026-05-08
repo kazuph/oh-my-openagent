@@ -280,7 +280,7 @@ Response language: match the language of the plan content.
 
 export { MOMUS_DEFAULT_PROMPT as MOMUS_SYSTEM_PROMPT };
 
-export function createMomusAgent(model: string): AgentConfig {
+export function createMomusAgent(): AgentConfig {
   const restrictions = createAgentToolRestrictions([
     "write",
     "edit",
@@ -292,7 +292,6 @@ export function createMomusAgent(model: string): AgentConfig {
     description:
       "Expert reviewer for evaluating work plans against rigorous clarity, verifiability, and completeness standards. (Momus - OhMyOpenCode)",
     mode: MODE,
-    model,
     temperature: 0.1,
     ...restrictions,
     prompt: MOMUS_DEFAULT_PROMPT,

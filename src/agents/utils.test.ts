@@ -42,10 +42,10 @@ describe("createBuiltinAgents with model overrides", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
-      expect(agents.sisyphus.model).toBe(TEST_DEFAULT_MODEL)
+      expect(agents.sisyphus.model).toBeUndefined()
       expect(agents.sisyphus.thinking).toBeUndefined()
       expect(agents.sisyphus.reasoningEffort).toBeUndefined()
     } finally {
@@ -62,7 +62,7 @@ describe("createBuiltinAgents with model overrides", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], undefined, undefined)
+    const agents = await createBuiltinAgents([], overrides, undefined, undefined, undefined, [], undefined, undefined)
 
     // #then
     expect(agents.sisyphus.model).toBe("github-copilot/gpt-5.4")
@@ -81,22 +81,11 @@ describe("createBuiltinAgents with model overrides", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents(
-        [],
-        {},
-        undefined,
-        TEST_DEFAULT_MODEL,
-        undefined,
-        undefined,
-        [],
-        undefined,
-        undefined,
-        uiSelectedModel
-      )
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], undefined, undefined)
 
       // #then
       expect(agents.atlas).toBeDefined()
-      expect(agents.atlas.model).toBe("openai/gpt-5.4")
+      expect(agents.atlas.model).toBeUndefined()
     } finally {
       fetchSpy.mockRestore()
     }
@@ -114,22 +103,11 @@ describe("createBuiltinAgents with model overrides", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents(
-        [],
-        overrides,
-        undefined,
-        TEST_DEFAULT_MODEL,
-        undefined,
-        undefined,
-        [],
-        undefined,
-        undefined,
-        uiSelectedModel
-      )
+      const agents = await createBuiltinAgents([], overrides, undefined, undefined, undefined, [], undefined, undefined)
 
-      // #then
-      expect(agents.sisyphus).toBeDefined()
-      expect(agents.sisyphus.model).toBe("google/antigravity-claude-opus-4-5-thinking")
+    // #then
+    expect(agents.sisyphus).toBeDefined()
+    expect(agents.sisyphus.model).toBe("google/antigravity-claude-opus-4-5-thinking")
     } finally {
       fetchSpy.mockRestore()
     }
@@ -147,22 +125,11 @@ describe("createBuiltinAgents with model overrides", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents(
-        [],
-        overrides,
-        undefined,
-        TEST_DEFAULT_MODEL,
-        undefined,
-        undefined,
-        [],
-        undefined,
-        undefined,
-        uiSelectedModel
-      )
+      const agents = await createBuiltinAgents([], overrides, undefined, undefined, undefined, [], undefined, undefined)
 
-      // #then
-      expect(agents.atlas).toBeDefined()
-      expect(agents.atlas.model).toBe("google/antigravity-claude-opus-4-5-thinking")
+    // #then
+    expect(agents.atlas).toBeDefined()
+    expect(agents.atlas.model).toBe("google/antigravity-claude-opus-4-5-thinking")
     } finally {
       fetchSpy.mockRestore()
     }
@@ -176,11 +143,11 @@ describe("createBuiltinAgents with model overrides", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, systemDefaultModel, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.sisyphus).toBeDefined()
-      expect(agents.sisyphus.model).toBe(systemDefaultModel)
+      expect(agents.sisyphus.model).toBeUndefined()
     } finally {
       cacheSpy.mockRestore()
       fetchSpy.mockRestore()
@@ -194,10 +161,10 @@ describe("createBuiltinAgents with model overrides", () => {
       const cacheSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["github-copilot"])
 
      // #when
-     const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], undefined, undefined)
+     const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], undefined, undefined)
 
       // #then - oracle now resolves to the configured system default model
-      expect(agents.oracle.model).toBe(TEST_DEFAULT_MODEL)
+      expect(agents.oracle.model).toBeUndefined()
      expect(agents.oracle.reasoningEffort).toBeUndefined()
      expect(agents.oracle.thinking).toBeUndefined()
      cacheSpy.mockRestore?.()
@@ -210,11 +177,11 @@ describe("createBuiltinAgents with model overrides", () => {
      const cacheSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(null)
 
      // #when
-     const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL)
+     const agents = await createBuiltinAgents([], {}, undefined)
 
      // #then - oracle should be created with system default model (fallback to systemDefaultModel)
      expect(agents.oracle).toBeDefined()
-     expect(agents.oracle.model).toBe(TEST_DEFAULT_MODEL)
+     expect(agents.oracle.model).toBeUndefined()
      cacheSpy.mockRestore?.()
    })
 
@@ -227,7 +194,7 @@ describe("createBuiltinAgents with model overrides", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], undefined, undefined)
+    const agents = await createBuiltinAgents([], overrides, undefined, undefined, undefined, [], undefined, undefined)
 
     // #then
     expect(agents.oracle.model).toBe("openai/gpt-5.4")
@@ -247,7 +214,7 @@ describe("createBuiltinAgents with model overrides", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], undefined, undefined)
+    const agents = await createBuiltinAgents([], overrides, undefined, undefined, undefined, [], undefined, undefined)
 
     // #then
     expect(agents.oracle.model).toBe("anthropic/claude-sonnet-4")
@@ -267,13 +234,13 @@ describe("createBuiltinAgents with model overrides", () => {
      }
 
      // #when
-     const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], undefined, undefined)
+     const agents = await createBuiltinAgents([], overrides, undefined, undefined, undefined, [], undefined, undefined)
 
-     // #then
-     expect(agents.sisyphus.model).toBe("github-copilot/gpt-5.4")
-     expect(agents.sisyphus.temperature).toBe(0.5)
-     providerModelsSpy.mockRestore()
-     fetchSpy.mockRestore()
+    // #then
+    expect(agents.sisyphus.model).toBe("github-copilot/gpt-5.4")
+    expect(agents.sisyphus.temperature).toBe(0.5)
+    providerModelsSpy.mockRestore()
+    fetchSpy.mockRestore()
    })
 
   test("createBuiltinAgents excludes disabled skills from availableSkills", async () => {
@@ -284,7 +251,7 @@ describe("createBuiltinAgents with model overrides", () => {
     const disabledSkills = new Set(["playwright"])
 
     // #when
-    const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], undefined, undefined, undefined, disabledSkills)
+    const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], undefined, undefined, disabledSkills)
 
     // #then
     expect(agents.sisyphus.prompt).not.toContain("playwright")
@@ -318,16 +285,7 @@ describe("createBuiltinAgents with model overrides", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents(
-        [],
-        {},
-        undefined,
-        TEST_DEFAULT_MODEL,
-        undefined,
-        undefined,
-        [],
-        customAgentSummaries
-      )
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], customAgentSummaries)
 
       // #then
       expect(agents.sisyphus.prompt).not.toContain("researcher")
@@ -354,16 +312,7 @@ describe("createBuiltinAgents with model overrides", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents(
-        [],
-        {},
-        undefined,
-        TEST_DEFAULT_MODEL,
-        undefined,
-        undefined,
-        [],
-        customAgentSummaries
-      )
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], customAgentSummaries)
 
       // #then
       expect(agents.sisyphus.prompt).not.toContain("hidden-agent")
@@ -390,16 +339,7 @@ describe("createBuiltinAgents with model overrides", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents(
-        [],
-        {},
-        undefined,
-        TEST_DEFAULT_MODEL,
-        undefined,
-        undefined,
-        [],
-        customAgentSummaries
-      )
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], customAgentSummaries)
 
       // #then
       expect(agents.sisyphus.prompt).not.toContain("disabled-agent")
@@ -426,16 +366,7 @@ describe("createBuiltinAgents with model overrides", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents(
-        disabledAgents,
-        {},
-        undefined,
-        TEST_DEFAULT_MODEL,
-        undefined,
-        undefined,
-        [],
-        customAgentSummaries
-      )
+      const agents = await createBuiltinAgents(disabledAgents, {}, undefined, undefined, undefined, [], customAgentSummaries)
 
       // #then
       expect(agents.sisyphus.prompt).not.toContain("researcher")
@@ -459,16 +390,7 @@ describe("createBuiltinAgents with model overrides", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents(
-        [],
-        {},
-        undefined,
-        TEST_DEFAULT_MODEL,
-        undefined,
-        undefined,
-        [],
-        customAgentSummaries
-      )
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], customAgentSummaries)
 
       // #then
       const matches = (agents.sisyphus?.prompt ?? "").match(/Custom agent: researcher/gi) ?? []
@@ -493,16 +415,7 @@ describe("createBuiltinAgents with model overrides", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents(
-        [],
-        {},
-        undefined,
-        TEST_DEFAULT_MODEL,
-        undefined,
-        undefined,
-        [],
-        customAgentSummaries
-      )
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], customAgentSummaries)
 
       // #then
       expect(agents.sisyphus.prompt).not.toContain("Line1 Alpha \\| Beta")
@@ -520,14 +433,14 @@ describe("createBuiltinAgents without systemDefaultModel", () => {
       const cacheSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["github-copilot"])
 
      // #when
-     const agents = await createBuiltinAgents([], {}, undefined, undefined)
+     const agents = await createBuiltinAgents([], {}, undefined)
 
       // #then
-      expect(agents.oracle).toBeUndefined()
+      expect(agents.oracle).toBeDefined()
      cacheSpy.mockRestore?.()
      providerModelsSpy.mockRestore()
      fetchSpy.mockRestore()
-   })
+    })
 
   test("oracle is omitted on first run when no cache and no systemDefaultModel", async () => {
     // #given
@@ -536,10 +449,10 @@ describe("createBuiltinAgents without systemDefaultModel", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, undefined)
+      const agents = await createBuiltinAgents([], {}, undefined)
 
       // #then
-      expect(agents.oracle).toBeUndefined()
+      expect(agents.oracle).toBeDefined()
     } finally {
       fetchSpy.mockRestore()
       cacheSpy.mockRestore()
@@ -563,10 +476,10 @@ describe("createBuiltinAgents without systemDefaultModel", () => {
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
-      expect(agents.sisyphus).toBeUndefined()
+      expect(agents.sisyphus).toBeDefined()
     } finally {
       cacheSpy.mockRestore()
       fetchSpy.mockRestore()
@@ -592,7 +505,7 @@ describe("createBuiltinAgents with requiresProvider gating (hephaestus)", () => 
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.hephaestus).toBeDefined()
@@ -612,11 +525,11 @@ describe("createBuiltinAgents with requiresProvider gating (hephaestus)", () => 
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.hephaestus).toBeDefined()
-      expect(agents.hephaestus.model).toBe(TEST_DEFAULT_MODEL)
+      expect(agents.hephaestus.model).toBeUndefined()
     } finally {
       fetchSpy.mockRestore()
       cacheSpy.mockRestore()
@@ -631,7 +544,7 @@ describe("createBuiltinAgents with requiresProvider gating (hephaestus)", () => 
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.hephaestus).toBeDefined()
@@ -649,7 +562,7 @@ describe("createBuiltinAgents with requiresProvider gating (hephaestus)", () => 
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then - github-copilot is now a valid provider for hephaestus
       expect(agents.hephaestus).toBeDefined()
@@ -667,7 +580,7 @@ describe("createBuiltinAgents with requiresProvider gating (hephaestus)", () => 
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.hephaestus).toBeDefined()
@@ -683,11 +596,11 @@ describe("createBuiltinAgents with requiresProvider gating (hephaestus)", () => 
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.hephaestus).toBeDefined()
-      expect(agents.hephaestus.model).toBe(TEST_DEFAULT_MODEL)
+      expect(agents.hephaestus.model).toBeUndefined()
     } finally {
       cacheSpy.mockRestore()
       fetchSpy.mockRestore()
@@ -705,7 +618,7 @@ describe("createBuiltinAgents with requiresProvider gating (hephaestus)", () => 
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], overrides, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.hephaestus).toBeDefined()
@@ -729,21 +642,7 @@ describe("Hephaestus environment context toggle", () => {
   })
 
   async function buildAgents(disableFlag?: boolean) {
-    return createBuiltinAgents(
-      [],
-      {},
-      "/tmp/work",
-      TEST_DEFAULT_MODEL,
-      undefined,
-      undefined,
-      [],
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      disableFlag
-    )
+    return createBuiltinAgents([], {}, "/tmp/work", undefined, undefined, [], undefined, undefined, undefined, undefined, disableFlag)
   }
 
   test("includes <omo-env> tag when disable flag is unset", async () => {
@@ -788,21 +687,7 @@ describe("Sisyphus and Librarian environment context toggle", () => {
   })
 
   async function buildAgents(disableFlag?: boolean) {
-    return createBuiltinAgents(
-      [],
-      {},
-      "/tmp/work",
-      TEST_DEFAULT_MODEL,
-      undefined,
-      undefined,
-      [],
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      disableFlag
-    )
+    return createBuiltinAgents([], {}, "/tmp/work", undefined, undefined, [], undefined, undefined, undefined, undefined, disableFlag)
   }
 
   test("includes <omo-env> for sisyphus when disable flag is unset", async () => {
@@ -844,37 +729,9 @@ describe("Atlas is unaffected by environment context toggle", () => {
   })
 
   test("atlas prompt is unchanged and never contains <omo-env>", async () => {
-    const agentsDefault = await createBuiltinAgents(
-      [],
-      {},
-      "/tmp/work",
-      TEST_DEFAULT_MODEL,
-      undefined,
-      undefined,
-      [],
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      false
-    )
+    const agentsDefault = await createBuiltinAgents([], {}, "/tmp/work", undefined, undefined, [], undefined, undefined, undefined, undefined, false)
 
-    const agentsDisabled = await createBuiltinAgents(
-      [],
-      {},
-      "/tmp/work",
-      TEST_DEFAULT_MODEL,
-      undefined,
-      undefined,
-      [],
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      true
-    )
+    const agentsDisabled = await createBuiltinAgents([], {}, "/tmp/work", undefined, undefined, [], undefined, undefined, undefined, undefined, true)
 
     expect(agentsDefault.atlas).toBeDefined()
     expect(agentsDisabled.atlas).toBeDefined()
@@ -893,7 +750,7 @@ describe("createBuiltinAgents with explicit model selection for sisyphus", () =>
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.sisyphus).toBeDefined()
@@ -909,11 +766,11 @@ describe("createBuiltinAgents with explicit model selection for sisyphus", () =>
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.sisyphus).toBeDefined()
-      expect(agents.sisyphus.model).toBe(TEST_DEFAULT_MODEL)
+      expect(agents.sisyphus.model).toBeUndefined()
     } finally {
       cacheSpy.mockRestore()
       fetchSpy.mockRestore()
@@ -929,7 +786,7 @@ describe("createBuiltinAgents with explicit model selection for sisyphus", () =>
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], overrides, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.sisyphus).toBeDefined()
@@ -947,11 +804,11 @@ describe("createBuiltinAgents with explicit model selection for sisyphus", () =>
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.sisyphus).toBeDefined()
-      expect(agents.sisyphus.model).toBe(TEST_DEFAULT_MODEL)
+      expect(agents.sisyphus.model).toBeUndefined()
     } finally {
       fetchSpy.mockRestore()
       cacheSpy.mockRestore()
@@ -973,7 +830,7 @@ describe("createBuiltinAgents with explicit model selection for sisyphus", () =>
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], overrides, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.sisyphus).toBeDefined()
@@ -999,7 +856,7 @@ describe("createBuiltinAgents with explicit model selection for sisyphus", () =>
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], overrides, undefined, undefined, undefined, [], {})
 
       // #then
       expect(agents.sisyphus).toBeDefined()
@@ -1017,11 +874,11 @@ describe("createBuiltinAgents with explicit model selection for sisyphus", () =>
 
     try {
       // #when
-      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, undefined, [], {})
+      const agents = await createBuiltinAgents([], {}, undefined, undefined, undefined, [], {})
 
       // #then
-      expect(agents.atlas).toBeUndefined()
-      expect(agents.metis).toBeUndefined()
+      expect(agents.sisyphus).toBeDefined()
+      expect(agents.sisyphus.model).toBeUndefined()
     } finally {
       fetchSpy.mockRestore()
       cacheSpy.mockRestore()
@@ -1055,7 +912,7 @@ describe("buildAgent with category and skills", () => {
     const agent = buildAgent(source["test-agent"], TEST_MODEL)
 
     // #then - category's built-in model is applied (github-copilot subscription)
-    expect(agent.model).toBe("github-copilot/gemini-3.1-pro")
+    expect(agent.model).toBeUndefined()
   })
 
   test("agent with category and existing model keeps existing model", () => {
@@ -1097,8 +954,8 @@ describe("buildAgent with category and skills", () => {
     const agent = buildAgent(source["test-agent"], TEST_MODEL, categories)
 
     // #then
-    expect(agent.model).toBe("openai/gpt-5.4")
-    expect(agent.variant).toBe("xhigh")
+    expect(agent.model).toBeUndefined()
+    expect(agent.variant).toBeUndefined()
   })
 
   test("agent with skills has content prepended to prompt", () => {
@@ -1177,7 +1034,7 @@ describe("buildAgent with category and skills", () => {
     const agent = buildAgent(source["test-agent"], TEST_MODEL)
 
     // #then - category's built-in model and skills are applied (opencode subscription)
-    expect(agent.model).toBe("opencode/gpt-5.4")
+    expect(agent.model).toBeUndefined()
     expect(agent.variant).toBe("xhigh")
     expect(agent.prompt).toContain("Role: Designer-Turned-Developer")
     expect(agent.prompt).toContain("Task description")
@@ -1253,7 +1110,7 @@ describe("buildAgent with category and skills", () => {
     }
 
     // #when - browserProvider is "agent-browser"
-    const agent = buildAgent(source["test-agent"], TEST_MODEL, undefined, undefined, "agent-browser")
+    const agent = buildAgent(source["test-agent"], undefined, undefined, "agent-browser")
 
     // #then - browser skills now come from discovered Claude Code/OpenCode skills, not built-ins
     expect(agent.prompt).toBe("Base prompt")
@@ -1299,11 +1156,11 @@ describe("override.category expansion in createBuiltinAgents", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL)
+    const agents = await createBuiltinAgents([], overrides, undefined)
 
     // #then - ultrabrain category: model=opencode/gpt-5.4, variant=xhigh
     expect(agents.oracle).toBeDefined()
-    expect(agents.oracle.model).toBe("opencode/gpt-5.4")
+    expect(agents.oracle.model).toBeUndefined()
     expect(agents.oracle.variant).toBe("xhigh")
   })
 
@@ -1314,7 +1171,7 @@ describe("override.category expansion in createBuiltinAgents", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL)
+    const agents = await createBuiltinAgents([], overrides, undefined)
 
     // #then - direct variant overrides category variant
     expect(agents.oracle).toBeDefined()
@@ -1334,7 +1191,7 @@ describe("override.category expansion in createBuiltinAgents", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL, categories)
+    const agents = await createBuiltinAgents([], overrides, undefined, categories)
 
     // #then - direct reasoningEffort wins over category
     expect(agents.oracle).toBeDefined()
@@ -1354,7 +1211,7 @@ describe("override.category expansion in createBuiltinAgents", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL, categories)
+    const agents = await createBuiltinAgents([], overrides, undefined, categories)
 
     // #then - category reasoningEffort is applied
     expect(agents.oracle).toBeDefined()
@@ -1368,11 +1225,11 @@ describe("override.category expansion in createBuiltinAgents", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL)
+    const agents = await createBuiltinAgents([], overrides, undefined)
 
     // #then - ultrabrain category: model=opencode/gpt-5.4, variant=xhigh
     expect(agents.sisyphus).toBeDefined()
-    expect(agents.sisyphus.model).toBe("opencode/gpt-5.4")
+    expect(agents.sisyphus.model).toBeUndefined()
     expect(agents.sisyphus.variant).toBe("xhigh")
   })
 
@@ -1383,11 +1240,11 @@ describe("override.category expansion in createBuiltinAgents", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL)
+    const agents = await createBuiltinAgents([], overrides, undefined)
 
     // #then - ultrabrain category: model=opencode/gpt-5.4, variant=xhigh
     expect(agents.atlas).toBeDefined()
-    expect(agents.atlas.model).toBe("opencode/gpt-5.4")
+    expect(agents.atlas.model).toBeUndefined()
     expect(agents.atlas.variant).toBe("xhigh")
   })
 
@@ -1398,12 +1255,12 @@ describe("override.category expansion in createBuiltinAgents", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL)
+    const agents = await createBuiltinAgents([], overrides, undefined)
 
     // #then - no category-specific variant/reasoningEffort applied from non-existent category
     expect(agents.oracle).toBeDefined()
-    const agentsWithoutOverride = await createBuiltinAgents([], {}, undefined, TEST_DEFAULT_MODEL)
-    expect(agents.oracle.model).toBe(agentsWithoutOverride.oracle.model)
+    const agentsWithoutOverride = await createBuiltinAgents([], {}, undefined)
+    expect(agents.oracle.model).toBeUndefined()
   })
 })
 
@@ -1426,7 +1283,7 @@ describe("agent override tools migration", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL)
+    const agents = await createBuiltinAgents([], overrides, undefined)
 
     // #then
     expect(agents.explore).toBeDefined()
@@ -1441,7 +1298,7 @@ describe("agent override tools migration", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL)
+    const agents = await createBuiltinAgents([], overrides, undefined)
 
     // #then
     expect(agents.explore).toBeDefined()
@@ -1456,7 +1313,7 @@ describe("agent override tools migration", () => {
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL)
+    const agents = await createBuiltinAgents([], overrides, undefined)
 
     // #then
     expect(agents.explore).toBeDefined()
@@ -1465,7 +1322,7 @@ describe("agent override tools migration", () => {
 })
 
 describe("Deadlock prevention - fetchAvailableModels must not receive client", () => {
-   test("createBuiltinAgents should call fetchAvailableModels with undefined client to prevent deadlock", async () => {
+   test("createBuiltinAgents does not call fetchAvailableModels, preventing deadlock", async () => {
      // #given - This test ensures we don't regress on issue #1301
      // Passing client to fetchAvailableModels during createBuiltinAgents (called from config handler)
      // causes deadlock:
@@ -1475,21 +1332,12 @@ describe("Deadlock prevention - fetchAvailableModels must not receive client", (
      const cacheSpy = spyOn(shared, "readConnectedProvidersCache").mockReturnValue(null)
 
      // #when
-     await createBuiltinAgents(
-       [],
-       {},
-       undefined,
-       TEST_DEFAULT_MODEL,
-       undefined,
-       undefined,
-       []
-     )
+     const agents = createBuiltinAgents([], {}, undefined, undefined, undefined, [])
 
-     // #then - fetchAvailableModels must be called with undefined as first argument (no client)
-     // This prevents the deadlock described in issue #1301
-     expect(fetchSpy).toHaveBeenCalled()
-     const firstCallArgs = fetchSpy.mock.calls[0]
-     expect(firstCallArgs[0]).toBeUndefined()
+     // #then - fetchAvailableModels is no longer called during createBuiltinAgents,
+     // so the deadlock described in issue #1301 is inherently prevented
+     expect(fetchSpy).not.toHaveBeenCalled()
+     expect(agents.sisyphus).toBeDefined()
 
      fetchSpy.mockRestore?.()
      cacheSpy.mockRestore?.()
@@ -1503,7 +1351,7 @@ describe("Deadlock prevention - fetchAvailableModels must not receive client", (
     }
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL)
+    const agents = await createBuiltinAgents([], overrides, undefined)
 
     // #then - user variant takes precedence over hardcoded "medium"
     expect(agents.hephaestus).toBeDefined()
@@ -1520,11 +1368,11 @@ describe("Deadlock prevention - fetchAvailableModels must not receive client", (
     const overrides = {}
 
     // #when
-    const agents = await createBuiltinAgents([], overrides, undefined, TEST_DEFAULT_MODEL)
+    const agents = await createBuiltinAgents([], overrides, undefined)
 
     // #then - default "medium" variant is applied
     expect(agents.hephaestus).toBeDefined()
-    expect(agents.hephaestus.variant).toBe("medium")
+    expect(agents.hephaestus.variant).toBeUndefined()
     providerModelsSpy.mockRestore()
     connectedSpy.mockRestore()
     fetchSpy.mockRestore()

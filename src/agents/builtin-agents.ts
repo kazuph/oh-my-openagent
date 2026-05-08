@@ -13,11 +13,6 @@ import { createMomusAgent, momusPromptMetadata } from "./momus"
 import { createHephaestusAgent } from "./hephaestus"
 import { createSisyphusJuniorAgentWithOverrides } from "./sisyphus-junior"
 import type { AvailableCategory } from "./dynamic-agent-prompt-builder"
-import {
-  fetchAvailableModels,
-  readConnectedProvidersCache,
-  readProviderModelsCache,
-} from "../shared"
 import { CATEGORY_DESCRIPTIONS } from "../tools/delegate-task/constants"
 import { mergeCategories } from "../shared/merge-categories"
 import { buildAvailableSkills } from "./builtin-agents/available-skills"
@@ -55,38 +50,20 @@ const agentMetadata: Partial<Record<BuiltinAgentName, AgentPromptMetadata>> = {
   atlas: atlasPromptMetadata,
 }
 
-export async function createBuiltinAgents(
+export function createBuiltinAgents(
   disabledAgents: string[] = [],
   agentOverrides: AgentOverrides = {},
   directory?: string,
-  systemDefaultModel?: string,
   categories?: CategoriesConfig,
   gitMasterConfig?: GitMasterConfig,
   discoveredSkills: LoadedSkill[] = [],
   customAgentSummaries?: unknown,
   browserProvider?: BrowserAutomationProvider,
-  uiSelectedModel?: string,
   disabledSkills?: Set<string>,
   useTaskSystem = false,
   disableOmoEnv = false
-): Promise<Record<string, AgentConfig>> {
+): Record<string, AgentConfig> {
   const effectiveDisabledAgents = [...disabledAgents]
-
-  const connectedProviders = readConnectedProvidersCache()
-  const providerModelsConnected = connectedProviders
-    ? (readProviderModelsCache()?.connected ?? [])
-    : []
-  const mergedConnectedProviders = Array.from(
-    new Set([...(connectedProviders ?? []), ...providerModelsConnected])
-  )
-  // IMPORTANT: Do NOT call OpenCode client APIs during plugin initialization.
-  // This function is called from config handler, and calling client API causes deadlock.
-  // See: https://github.com/code-yeongyu/oh-my-openagent/issues/1301
-  const availableModels = await fetchAvailableModels(undefined, {
-    connectedProviders: mergedConnectedProviders.length > 0 ? mergedConnectedProviders : undefined,
-  })
-  const isFirstRunNoCache =
-    availableModels.size === 0 && mergedConnectedProviders.length === 0
 
   const result: Record<string, AgentConfig> = {}
 
@@ -106,13 +83,9 @@ export async function createBuiltinAgents(
     disabledAgents: effectiveDisabledAgents,
     agentOverrides,
     directory,
-    systemDefaultModel,
     mergedCategories,
     gitMasterConfig,
     browserProvider,
-    uiSelectedModel,
-    availableModels,
-    isFirstRunNoCache,
     disabledSkills,
     disableOmoEnv,
   })
@@ -120,10 +93,6 @@ export async function createBuiltinAgents(
   const sisyphusConfig = maybeCreateSisyphusConfig({
     disabledAgents: effectiveDisabledAgents,
     agentOverrides,
-    uiSelectedModel,
-    availableModels,
-    systemDefaultModel,
-    isFirstRunNoCache,
     availableAgents,
     availableSkills,
     availableCategories,
@@ -140,9 +109,6 @@ export async function createBuiltinAgents(
   const hephaestusConfig = maybeCreateHephaestusConfig({
     disabledAgents: effectiveDisabledAgents,
     agentOverrides,
-    availableModels,
-    systemDefaultModel,
-    isFirstRunNoCache,
     availableAgents,
     availableSkills,
     availableCategories,
@@ -163,9 +129,6 @@ export async function createBuiltinAgents(
   const atlasConfig = maybeCreateAtlasConfig({
     disabledAgents: effectiveDisabledAgents,
     agentOverrides,
-    uiSelectedModel,
-    availableModels,
-    systemDefaultModel,
     availableAgents,
     availableSkills,
     mergedCategories,

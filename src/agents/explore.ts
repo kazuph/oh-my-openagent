@@ -24,7 +24,7 @@ export const EXPLORE_PROMPT_METADATA: AgentPromptMetadata = {
   ],
 }
 
-export function createExploreAgent(model: string): AgentConfig {
+export function createExploreAgent(): AgentConfig {
   const restrictions = createAgentToolRestrictions([
     "write",
     "edit",
@@ -37,7 +37,6 @@ export function createExploreAgent(model: string): AgentConfig {
     description:
       'Contextual grep for codebases. Answers "Where is X?", "Which file has Y?", "Find the code that does Z". Fire multiple in parallel for broad searches. Specify thoroughness: "quick" for basic, "medium" for moderate, "very thorough" for comprehensive analysis. (Explore - OhMyOpenCode)',
     mode: MODE,
-    model,
     temperature: 0.1,
     ...restrictions,
     prompt: `You are a codebase search specialist. Your job: find files and code, return actionable results.

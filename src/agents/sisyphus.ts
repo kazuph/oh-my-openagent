@@ -33,7 +33,6 @@ import {
 } from "./dynamic-agent-prompt-builder";
 
 function buildDynamicSisyphusPrompt(
-  model: string,
   availableAgents: AvailableAgent[],
   availableTools: AvailableTool[] = [],
   availableSkills: AvailableSkill[] = [],
@@ -56,8 +55,8 @@ function buildDynamicSisyphusPrompt(
   const oracleSection = buildOracleSection(availableAgents);
   const hardBlocks = buildHardBlocksSection();
   const antiPatterns = buildAntiPatternsSection();
-  const parallelDelegationSection = buildParallelDelegationSection(model, availableCategories);
-  const nonClaudePlannerSection = buildNonClaudePlannerSection(model);
+  const parallelDelegationSection = buildParallelDelegationSection(availableCategories);
+  const nonClaudePlannerSection = buildNonClaudePlannerSection();
   const taskManagementSection = buildTaskManagementSection(useTaskSystem);
   const todoHookNote = useTaskSystem
     ? "YOUR TASK CREATION WOULD BE TRACKED BY HOOK([SYSTEM REMINDER - TASK CONTINUATION])"
@@ -457,7 +456,6 @@ ${antiPatterns}
 }
 
 export function createSisyphusAgent(
-  model: string,
   availableAgents?: AvailableAgent[],
   availableToolNames?: string[],
   availableSkills?: AvailableSkill[],
@@ -470,7 +468,6 @@ export function createSisyphusAgent(
   const agents = availableAgents ?? [];
 
   const prompt = buildDynamicSisyphusPrompt(
-    model,
     agents,
     tools,
     skills,
@@ -487,7 +484,6 @@ export function createSisyphusAgent(
     description:
       "Powerful AI orchestrator. Plans obsessively with todos, assesses search complexity before exploration, delegates strategically via category+skills combinations. Uses explore for internal code and loads the librarian skill for external references when needed. (Sisyphus - OhMyOpenCode)",
     mode: MODE,
-    model,
     maxTokens: 64000,
     prompt,
     color: "#00CED1",

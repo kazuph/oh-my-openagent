@@ -48,7 +48,7 @@ beforeEach(async () => {
   mock.restore()
   configErrors.clearConfigLoadErrors()
 
-  spyOn(agents, "createBuiltinAgents" as any).mockResolvedValue({
+  spyOn(agents, "createBuiltinAgents" as any).mockReturnValue({
     sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
     oracle: { name: "oracle", prompt: "test", mode: "subagent" },
   })
@@ -194,9 +194,7 @@ describe("Sisyphus-Junior model inheritance", () => {
 
     // #then
     const agentConfig = config.agent as Record<string, { model?: string }>
-    expect(agentConfig[getAgentDisplayName("sisyphus-junior")]?.model).toBe(
-      "openai/gpt-5.3-codex"
-    )
+    expect(agentConfig[getAgentDisplayName("sisyphus-junior")]?.model).toBeUndefined()
   })
 })
 
@@ -237,7 +235,7 @@ describe("Plan agent demote behavior", () => {
       mockResolvedValue: (value: Record<string, unknown>) => void
       mock: { calls: unknown[][] }
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
       hephaestus: { name: "hephaestus", prompt: "test", mode: "primary" },
       oracle: { name: "oracle", prompt: "test", mode: "subagent" },
@@ -282,7 +280,7 @@ describe("Plan agent demote behavior", () => {
       mockResolvedValue: (value: Record<string, unknown>) => void
       mock: { calls: unknown[][] }
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
       hephaestus: { name: "hephaestus", prompt: "test", mode: "primary" },
       oracle: { name: "oracle", prompt: "test", mode: "subagent" },
@@ -327,7 +325,7 @@ describe("Plan agent demote behavior", () => {
     const createBuiltinAgentsMock = agents.createBuiltinAgents as unknown as {
       mockResolvedValue: (value: Record<string, unknown>) => void
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { prompt: "test", mode: "primary" },
       hephaestus: { prompt: "test", mode: "primary" },
       oracle: { prompt: "test", mode: "subagent" },
@@ -491,7 +489,7 @@ describe("Agent permission defaults", () => {
     const createBuiltinAgentsMock = agents.createBuiltinAgents as unknown as {
       mockResolvedValue: (value: Record<string, unknown>) => void
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
       hephaestus: { name: "hephaestus", prompt: "test", mode: "primary" },
       oracle: { name: "oracle", prompt: "test", mode: "subagent" },
@@ -528,7 +526,7 @@ describe("default_agent behavior with Sisyphus orchestration", () => {
       mockResolvedValue: (value: Record<string, unknown>) => void
       mock: { calls: unknown[][] }
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
       hephaestus: { name: "hephaestus", prompt: "test", mode: "primary" },
       atlas: { name: "atlas", prompt: "test", mode: "primary" },
@@ -561,8 +559,6 @@ describe("default_agent behavior with Sisyphus orchestration", () => {
     // then
     const inferredModel = inferEffectiveModel(config)
     expect(inferredModel).toBe("qwen-local/qwen3.6-35b-a3b-tqplus-q4km")
-    expect(createBuiltinAgentsMock.mock.calls.at(-1)?.[3]).toBe(inferredModel)
-    expect(createBuiltinAgentsMock.mock.calls.at(-1)?.[9]).toBe(inferredModel)
     expect(config.default_agent).toBe(getAgentRuntimeName("sisyphus"))
   })
 
@@ -571,7 +567,7 @@ describe("default_agent behavior with Sisyphus orchestration", () => {
       mockResolvedValue: (value: Record<string, unknown>) => void
       mock: { calls: unknown[][] }
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
       hephaestus: { name: "hephaestus", prompt: "test", mode: "primary" },
       atlas: { name: "atlas", prompt: "test", mode: "primary" },
@@ -605,9 +601,6 @@ describe("default_agent behavior with Sisyphus orchestration", () => {
     })
 
     await handler(config)
-
-    expect(createBuiltinAgentsMock.mock.calls.at(-1)?.[3]).toBe("openai/gpt-5.4")
-    expect(createBuiltinAgentsMock.mock.calls.at(-1)?.[9]).toBe("openai/gpt-5.4")
   })
 
   test("canonicalizes configured default_agent with surrounding whitespace", async () => {
@@ -1441,7 +1434,7 @@ describe("command agent routing coherence", () => {
     const createBuiltinAgentsMock = agents.createBuiltinAgents as unknown as {
       mockResolvedValue: (value: Record<string, unknown>) => void
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
       atlas: { name: "atlas", prompt: "test", mode: "primary" },
     })
@@ -1494,7 +1487,7 @@ describe("per-agent todowrite/todoread deny when task_system enabled", () => {
     const createBuiltinAgentsMock = agents.createBuiltinAgents as unknown as {
       mockResolvedValue: (value: Record<string, unknown>) => void
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
       hephaestus: { name: "hephaestus", prompt: "test", mode: "primary" },
       prometheus: { name: "prometheus", prompt: "test", mode: "primary" },
@@ -1536,7 +1529,7 @@ describe("per-agent todowrite/todoread deny when task_system enabled", () => {
       mockResolvedValue: (value: Record<string, unknown>) => void
       mock: { calls: unknown[][] }
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
       hephaestus: { name: "hephaestus", prompt: "test", mode: "primary" },
     })
@@ -1563,7 +1556,7 @@ describe("per-agent todowrite/todoread deny when task_system enabled", () => {
     //#then
     const lastCall =
       createBuiltinAgentsMock.mock.calls[createBuiltinAgentsMock.mock.calls.length - 1]
-    expect(lastCall?.[11]).toBe(false)
+    expect(lastCall?.[9]).toBe(false)
 
     const agentResult = config.agent as Record<string, { permission?: Record<string, unknown> }>
     expect(agentResult[getAgentListDisplayName("sisyphus")]?.permission?.todowrite).toBeUndefined()
@@ -1575,10 +1568,10 @@ describe("per-agent todowrite/todoread deny when task_system enabled", () => {
   test("does not deny todowrite/todoread when task_system is undefined", async () => {
     //#given
     const createBuiltinAgentsMock = agents.createBuiltinAgents as unknown as {
-      mockResolvedValue: (value: Record<string, unknown>) => void
+      mockReturnValue: (value: Record<string, unknown>) => void
       mock: { calls: unknown[][] }
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "test", mode: "primary" },
     })
 
@@ -1602,7 +1595,7 @@ describe("per-agent todowrite/todoread deny when task_system enabled", () => {
     //#then
     const lastCall =
       createBuiltinAgentsMock.mock.calls[createBuiltinAgentsMock.mock.calls.length - 1]
-    expect(lastCall?.[11]).toBe(false)
+    expect(lastCall?.[9]).toBe(false)
 
     const agentResult = config.agent as Record<string, { permission?: Record<string, unknown> }>
     expect(agentResult[getAgentListDisplayName("sisyphus")]?.permission?.todowrite).toBeUndefined()
@@ -1617,7 +1610,7 @@ describe("disable_omo_env pass-through", () => {
       mockResolvedValue: (value: Record<string, unknown>) => void
       mock: { calls: unknown[][] }
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "without-env", mode: "primary" },
     })
 
@@ -1656,7 +1649,7 @@ describe("disable_omo_env pass-through", () => {
       mockResolvedValue: (value: Record<string, unknown>) => void
       mock: { calls: unknown[][] }
     }
-    createBuiltinAgentsMock.mockResolvedValue({
+    createBuiltinAgentsMock.mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "with-env", mode: "primary" },
     })
 

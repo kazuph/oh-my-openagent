@@ -12,7 +12,6 @@ import { buildHephaestusPrompt as buildDefaultPrompt } from "./default";
 const MODE: AgentMode = "primary";
 
 export interface HephaestusContext {
-  model?: string;
   availableAgents?: AvailableAgent[];
   availableTools?: AvailableTool[];
   availableSkills?: AvailableSkill[];
@@ -21,10 +20,9 @@ export interface HephaestusContext {
 }
 
 export function getHephaestusPrompt(
-  model?: string,
   useTaskSystem = false,
 ): string {
-  return buildDynamicHephaestusPrompt({ model, useTaskSystem });
+  return buildDynamicHephaestusPrompt({ useTaskSystem });
 }
 
 function buildDynamicHephaestusPrompt(ctx?: HephaestusContext): string {
@@ -50,7 +48,6 @@ function buildDynamicHephaestusPrompt(ctx?: HephaestusContext): string {
 }
 
 export function createHephaestusAgent(
-  model: string,
   availableAgents?: AvailableAgent[],
   availableToolNames?: string[],
   availableSkills?: AvailableSkill[],
@@ -60,7 +57,6 @@ export function createHephaestusAgent(
   const tools = availableToolNames ? categorizeTools(availableToolNames) : [];
 
   const prompt = buildDynamicHephaestusPrompt({
-    model,
     availableAgents,
     availableTools: tools,
     availableSkills,
@@ -72,7 +68,6 @@ export function createHephaestusAgent(
     description:
       "Autonomous deep worker for goal-oriented execution. Explores thoroughly before acting, uses explore plus loaded skills for comprehensive context, and completes tasks end-to-end. Inspired by AmpCode deep mode. (Hephaestus - OhMyOpenCode)",
     mode: MODE,
-    model,
     maxTokens: 32000,
     prompt,
     color: "#D97706",

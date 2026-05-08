@@ -175,13 +175,8 @@ Briefly announce "Consulting Oracle for [reason]" before invocation.
 </Oracle_Usage>`
 }
 
-export function buildNonClaudePlannerSection(model: string): string {
-  const isNonClaude = !model.toLowerCase().includes("claude")
-  if (!isNonClaude) {
-    return ""
-  }
-
-  return `### Plan Agent Dependency (Non-Claude)
+export function buildNonClaudePlannerSection(): string {
+  return `### Plan Agent Dependency
 
 Multi-step task? **ALWAYS consult Plan Agent first.** Do NOT start implementation without a plan.
 
@@ -194,15 +189,13 @@ Plan Agent returns a structured work breakdown with parallel execution opportuni
 }
 
 export function buildParallelDelegationSection(
-  model: string,
   categories: AvailableCategory[],
 ): string {
-  const isNonClaude = !model.toLowerCase().includes("claude")
   const hasDelegationCategory = categories.some(
     (category) => category.name === "deep" || category.name === "unspecified-high",
   )
 
-  if (!isNonClaude || !hasDelegationCategory) {
+  if (!hasDelegationCategory) {
     return ""
   }
 

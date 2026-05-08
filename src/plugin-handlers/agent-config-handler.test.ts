@@ -99,7 +99,7 @@ describe("applyAgentConfig builtin override protection", () => {
   }
 
   beforeEach(() => {
-    createBuiltinAgentsSpy = spyOn(agents, "createBuiltinAgents").mockResolvedValue({
+    createBuiltinAgentsSpy = spyOn(agents, "createBuiltinAgents").mockReturnValue({
       sisyphus: builtinSisyphusConfig,
       oracle: builtinOracleConfig,
       "multimodal-looker": builtinMultimodalLookerConfig,
@@ -332,7 +332,7 @@ describe("applyAgentConfig builtin override protection", () => {
     })
 
     // then
-    expect(createSisyphusJuniorAgentSpy).toHaveBeenCalledWith(undefined, "openai/gpt-5.4", false)
+    expect(createSisyphusJuniorAgentSpy).toHaveBeenCalledWith(undefined, false)
   })
 
   test("defaults mode to subagent for configAgent entries missing mode", async () => {
@@ -442,7 +442,7 @@ describe("applyAgentConfig builtin override protection", () => {
     })
 
     // then
-    const discoveredSkills = createBuiltinAgentsSpy.mock.calls[0]?.[6]
+    const discoveredSkills = createBuiltinAgentsSpy.mock.calls[0]?.[5]
     expect(discoveredSkills).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: "project-agent-skill" }),

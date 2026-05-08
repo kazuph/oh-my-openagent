@@ -100,8 +100,8 @@ describe("read-only agent tool restrictions", () => {
   describe("Sisyphus permissions", () => {
     test("keeps the same permission surface across model strings", () => {
       // given
-      const gptAgent = createSisyphusAgent("openai/gpt-5.4")
-      const claudeAgent = createSisyphusAgent(TEST_MODEL)
+      const gptAgent = createSisyphusAgent()
+      const claudeAgent = createSisyphusAgent()
 
       // when
       const gptPermission = (gptAgent.permission ?? {}) as Record<string, string>

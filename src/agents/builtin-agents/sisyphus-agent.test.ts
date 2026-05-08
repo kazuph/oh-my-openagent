@@ -9,7 +9,6 @@ describe("maybeCreateSisyphusConfig", () => {
       // given
       const agentOverrides: AgentOverrides = {
         sisyphus: {
-          model: "openai/gpt-5.4",
           permission: {
             apply_patch: "allow",
           },
@@ -21,9 +20,6 @@ describe("maybeCreateSisyphusConfig", () => {
       const config = maybeCreateSisyphusConfig({
         disabledAgents: [],
         agentOverrides,
-        availableModels: new Set(["openai/gpt-5.4"]),
-        systemDefaultModel: "openai/gpt-5.4",
-        isFirstRunNoCache: false,
         availableAgents: [],
         availableSkills: [],
         availableCategories: [],
@@ -33,7 +29,6 @@ describe("maybeCreateSisyphusConfig", () => {
 
       // then
       expect(config).toBeDefined();
-      expect(config?.model).toBe("openai/gpt-5.4");
       expect(config?.permission).toHaveProperty("apply_patch", "allow");
     });
   });
@@ -43,7 +38,6 @@ describe("maybeCreateSisyphusConfig", () => {
       // given
       const agentOverrides: AgentOverrides = {
         sisyphus: {
-          model: "anthropic/claude-opus-4-6",
           permission: {
             apply_patch: "allow",
           },
@@ -55,9 +49,6 @@ describe("maybeCreateSisyphusConfig", () => {
       const config = maybeCreateSisyphusConfig({
         disabledAgents: [],
         agentOverrides,
-        availableModels: new Set(["anthropic/claude-opus-4-6"]),
-        systemDefaultModel: "anthropic/claude-opus-4-6",
-        isFirstRunNoCache: false,
         availableAgents: [],
         availableSkills: [],
         availableCategories: [],
@@ -67,7 +58,6 @@ describe("maybeCreateSisyphusConfig", () => {
 
       // then
       expect(config).toBeDefined();
-      expect(config?.model).toBe("anthropic/claude-opus-4-6");
       // Claude models should allow the user override
       expect(config?.permission).toHaveProperty("apply_patch", "allow");
     });
@@ -78,7 +68,6 @@ describe("maybeCreateSisyphusConfig", () => {
       // given
       const agentOverrides: AgentOverrides = {
         sisyphus: {
-          model: "openai/gpt-4o",
           permission: {
             apply_patch: "allow",
           },
@@ -90,9 +79,6 @@ describe("maybeCreateSisyphusConfig", () => {
       const config = maybeCreateSisyphusConfig({
         disabledAgents: [],
         agentOverrides,
-        availableModels: new Set(["openai/gpt-4o"]),
-        systemDefaultModel: "openai/gpt-4o",
-        isFirstRunNoCache: false,
         availableAgents: [],
         availableSkills: [],
         availableCategories: [],
@@ -102,7 +88,6 @@ describe("maybeCreateSisyphusConfig", () => {
 
       // then
       expect(config).toBeDefined();
-      expect(config?.model).toBe("openai/gpt-4o");
       expect(config?.permission).toHaveProperty("apply_patch", "allow");
     });
   });

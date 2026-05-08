@@ -136,7 +136,6 @@ Should I proceed with [recommendation], or would you prefer differently?
 }
 
 export function buildDefaultSisyphusPrompt(
-  model: string,
   availableAgents: AvailableAgent[],
   availableTools: AvailableTool[] = [],
   availableSkills: AvailableSkill[] = [],
@@ -159,8 +158,8 @@ export function buildDefaultSisyphusPrompt(
   const oracleSection = buildOracleSection(availableAgents);
   const hardBlocks = buildHardBlocksSection();
   const antiPatterns = buildAntiPatternsSection();
-  const parallelDelegationSection = buildParallelDelegationSection(model, availableCategories);
-  const nonClaudePlannerSection = buildNonClaudePlannerSection(model);
+  const parallelDelegationSection = buildParallelDelegationSection(availableCategories);
+  const nonClaudePlannerSection = buildNonClaudePlannerSection();
   const taskManagementSection = buildTaskManagementSection(useTaskSystem);
   const todoHookNote = useTaskSystem
     ? "YOUR TASK CREATION WOULD BE TRACKED BY HOOK([SYSTEM REMINDER - TASK CONTINUATION])"

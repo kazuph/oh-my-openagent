@@ -23,15 +23,13 @@ const MODE: AgentMode = "subagent"
 const BLOCKED_TOOLS = ["task"]
 
 export const SISYPHUS_JUNIOR_DEFAULTS = {
-  model: "github-copilot/claude-sonnet-4-6",
   temperature: 0.1,
 } as const
 
 /**
- * Builds the appropriate Sisyphus-Junior prompt based on model.
+ * Builds the appropriate Sisyphus-Junior prompt.
  */
 export function buildSisyphusJuniorPrompt(
-  _model: string | undefined,
   useTaskSystem: boolean,
   promptAppend?: string
 ): string {
@@ -40,19 +38,16 @@ export function buildSisyphusJuniorPrompt(
 
 export function createSisyphusJuniorAgentWithOverrides(
   override: AgentOverrideConfig | undefined,
-  systemDefaultModel?: string,
   useTaskSystem = false
 ): AgentConfig {
   if (override?.disable) {
     override = undefined
   }
 
-  const overrideModel = (override as { model?: string } | undefined)?.model
-  const model = overrideModel ?? systemDefaultModel ?? SISYPHUS_JUNIOR_DEFAULTS.model
   const temperature = override?.temperature ?? SISYPHUS_JUNIOR_DEFAULTS.temperature
 
   const promptAppend = override?.prompt_append
-  const prompt = buildSisyphusJuniorPrompt(model, useTaskSystem, promptAppend)
+  const prompt = buildSisyphusJuniorPrompt(useTaskSystem, promptAppend)
   const baseRestrictions = createAgentToolRestrictions(BLOCKED_TOOLS)
 
   const userPermission = (override?.permission ?? {}) as Record<string, PermissionValue>
@@ -69,7 +64,6 @@ export function createSisyphusJuniorAgentWithOverrides(
     description: override?.description ??
       "Focused task executor. Same discipline, no delegation. (Sisyphus-Junior - OhMyOpenCode)",
     mode: MODE,
-    model,
     temperature,
     maxTokens: 64000,
     prompt,

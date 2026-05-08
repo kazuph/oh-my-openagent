@@ -11,14 +11,13 @@ export const MULTIMODAL_LOOKER_PROMPT_METADATA: AgentPromptMetadata = {
   triggers: [],
 }
 
-export function createMultimodalLookerAgent(model: string): AgentConfig {
+export function createMultimodalLookerAgent(): AgentConfig {
   const restrictions = createAgentToolAllowlist(["read"])
 
   return {
     description:
       "Analyze media files (PDFs, images, diagrams) that require interpretation beyond raw text. Extracts specific information or summaries from documents, describes visual content. Use when you need analyzed/extracted data rather than literal file contents. (Multimodal-Looker - OhMyOpenCode)",
     mode: MODE,
-    model,
     temperature: 0.1,
     ...restrictions,
     prompt: `You interpret media files that cannot be read as plain text.

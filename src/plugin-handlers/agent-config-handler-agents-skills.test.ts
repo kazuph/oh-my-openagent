@@ -41,7 +41,7 @@ describe("applyAgentConfig .agents skills", () => {
   let logSpy: ReturnType<typeof spyOn>
 
   beforeEach(() => {
-    createBuiltinAgentsSpy = spyOn(agents, "createBuiltinAgents").mockResolvedValue({
+    createBuiltinAgentsSpy = spyOn(agents, "createBuiltinAgents").mockReturnValue({
       sisyphus: { name: "sisyphus", prompt: "builtin", mode: "primary" } satisfies AgentConfig,
     })
     createSisyphusJuniorAgentSpy = spyOn(
@@ -118,7 +118,7 @@ describe("applyAgentConfig .agents skills", () => {
     })
 
     // then
-    const discoveredSkills = createBuiltinAgentsSpy.mock.calls[0]?.[6] as Array<{ name: string }>
+    const discoveredSkills = createBuiltinAgentsSpy.mock.calls[0]?.[5] as Array<{ name: string }>
     expect(discoveredSkills.map(skill => skill.name)).toContain("project-agent-skill")
     expect(discoveredSkills.map(skill => skill.name)).toContain("global-agent-skill")
   })

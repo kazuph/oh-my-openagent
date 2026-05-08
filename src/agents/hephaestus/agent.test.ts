@@ -7,8 +7,8 @@ import type { CategoryConfig } from "../../config/schema"
 describe("getHephaestusPrompt", () => {
   test("uses one default prompt path across model strings", () => {
     // given
-    const gptPrompt = getHephaestusPrompt("openai/gpt-5.4")
-    const claudePrompt = getHephaestusPrompt("anthropic/claude-opus-4-6")
+    const gptPrompt = getHephaestusPrompt()
+    const claudePrompt = getHephaestusPrompt()
 
     // then
     expect(gptPrompt).toBe(claudePrompt)
@@ -19,8 +19,8 @@ describe("getHephaestusPrompt", () => {
 
   test("switches between todo and task discipline only via useTaskSystem", () => {
     // given
-    const todoPrompt = getHephaestusPrompt(undefined, false)
-    const taskPrompt = getHephaestusPrompt(undefined, true)
+    const todoPrompt = getHephaestusPrompt(false)
+    const taskPrompt = getHephaestusPrompt(true)
 
     // then
     expect(todoPrompt).toContain("Todo Discipline")
@@ -37,12 +37,11 @@ describe("getHephaestusPrompt", () => {
 describe("createHephaestusAgent", () => {
   test("returns the expected base config without model-specific apply_patch restrictions", () => {
     // when
-    const config = createHephaestusAgent("openai/gpt-5.4")
+    const config = createHephaestusAgent()
 
     // then
     expect(config).toHaveProperty("description")
     expect(config).toHaveProperty("mode", "primary")
-    expect(config).toHaveProperty("model", "openai/gpt-5.4")
     expect(config).toHaveProperty("maxTokens", 32000)
     expect(config).toHaveProperty("prompt")
     expect(config).toHaveProperty("color", "#D97706")
@@ -55,15 +54,12 @@ describe("createHephaestusAgent", () => {
 })
 
 describe("maybeCreateHephaestusConfig", () => {
-  function createConfig(agentOverrides: AgentOverrides, model: string) {
+  function createConfig(agentOverrides: AgentOverrides) {
     const mergedCategories: Record<string, CategoryConfig> = {}
 
     return maybeCreateHephaestusConfig({
       disabledAgents: [],
       agentOverrides,
-      availableModels: new Set([model]),
-      systemDefaultModel: model,
-      isFirstRunNoCache: false,
       availableAgents: [],
       availableSkills: [],
       availableCategories: [],
@@ -77,11 +73,9 @@ describe("maybeCreateHephaestusConfig", () => {
     const config = createConfig(
       {
         hephaestus: {
-          model: "openai/gpt-5.4",
           permission: { apply_patch: "allow" },
         },
       },
-      "openai/gpt-5.4",
     )
 
     // then
@@ -94,11 +88,9 @@ describe("maybeCreateHephaestusConfig", () => {
     const config = createConfig(
       {
         hephaestus: {
-          model: "anthropic/claude-opus-4-6",
           permission: { apply_patch: "allow" },
         },
       },
-      "anthropic/claude-opus-4-6",
     )
 
     // then

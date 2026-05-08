@@ -179,13 +179,12 @@ describe("buildParallelDelegationSection", () => {
   const unspecifiedHighCategory: AvailableCategory = { name: "unspecified-high", description: "High effort tasks" }
   const otherCategory: AvailableCategory = { name: "quick", description: "Trivial tasks" }
 
-  it("#given non-Claude model with deep category #when building #then returns aggressive delegation section", () => {
+  it("#given model with deep category #when building #then returns aggressive delegation section", () => {
     //#given
-    const model = "google/gemini-3.1-pro"
     const categories = [deepCategory, otherCategory]
 
     //#when
-    const result = buildParallelDelegationSection(model, categories)
+    const result = buildParallelDelegationSection(categories)
 
     //#then
     expect(result).toContain("DECOMPOSE AND DELEGATE")
@@ -195,13 +194,12 @@ describe("buildParallelDelegationSection", () => {
     expect(result).toContain("NEVER implement directly")
   })
 
-  it("#given non-Claude model with unspecified-high category #when building #then returns aggressive delegation section", () => {
+  it("#given model with unspecified-high category #when building #then returns aggressive delegation section", () => {
     //#given
-    const model = "openai/gpt-5.4"
     const categories = [unspecifiedHighCategory, otherCategory]
 
     //#when
-    const result = buildParallelDelegationSection(model, categories)
+    const result = buildParallelDelegationSection(categories)
 
     //#then
     expect(result).toContain("DECOMPOSE AND DELEGATE")
@@ -209,25 +207,12 @@ describe("buildParallelDelegationSection", () => {
     expect(result).toContain("NEVER work sequentially")
   })
 
-  it("#given Claude model #when building #then returns empty", () => {
+  it("#given model without deep or unspecified-high category #when building #then returns empty", () => {
     //#given
-    const model = "anthropic/claude-opus-4-6"
-    const categories = [deepCategory]
-
-    //#when
-    const result = buildParallelDelegationSection(model, categories)
-
-    //#then
-    expect(result).toBe("")
-  })
-
-  it("#given non-Claude model without deep or unspecified-high category #when building #then returns empty", () => {
-    //#given
-    const model = "openai/gpt-5.4"
     const categories = [otherCategory]
 
     //#when
-    const result = buildParallelDelegationSection(model, categories)
+    const result = buildParallelDelegationSection(categories)
 
     //#then
     expect(result).toBe("")
@@ -235,40 +220,14 @@ describe("buildParallelDelegationSection", () => {
 })
 
 describe("buildNonClaudePlannerSection", () => {
-  it("#given non-Claude model #when building #then returns plan agent section", () => {
-    //#given
-    const model = "google/gemini-3.1-pro"
-
+  it("#when building #then returns plan agent section", () => {
     //#when
-    const result = buildNonClaudePlannerSection(model)
+    const result = buildNonClaudePlannerSection()
 
     //#then
     expect(result).toContain("Plan Agent")
     expect(result).toContain("session_id")
     expect(result).toContain("Multi-step")
-  })
-
-  it("#given Claude model #when building #then returns empty", () => {
-    //#given
-    const model = "anthropic/claude-sonnet-4-6"
-
-    //#when
-    const result = buildNonClaudePlannerSection(model)
-
-    //#then
-    expect(result).toBe("")
-  })
-
-  it("#given GPT model #when building #then returns plan agent section", () => {
-    //#given
-    const model = "openai/gpt-5.4"
-
-    //#when
-    const result = buildNonClaudePlannerSection(model)
-
-    //#then
-    expect(result).toContain("Plan Agent")
-    expect(result).not.toBe("")
   })
 })
 
