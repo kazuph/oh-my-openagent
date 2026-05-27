@@ -8,9 +8,12 @@ const CLAUDE_SUBSCRIPTION_PREFIX = "github-copilot/"
 
 const CLAUDE_CODE_ALIAS_MAP = new Map<string, string>([
   ["sonnet", `${CLAUDE_SUBSCRIPTION_PREFIX}claude-sonnet-4-6`],
-  ["opus", `${CLAUDE_SUBSCRIPTION_PREFIX}claude-opus-4-6`],
   ["haiku", `${CLAUDE_SUBSCRIPTION_PREFIX}claude-haiku-4-5`],
 ])
+
+function isOpusModelId(modelID: string): boolean {
+  return normalizeModelID(modelID).includes("claude-opus")
+}
 
 function mapClaudeModelString(model: string | undefined): string | undefined {
   if (!model) return undefined
@@ -29,6 +32,8 @@ function mapClaudeModelString(model: string | undefined): string | undefined {
 
     if (providerID.length === 0 || modelID.length === 0) return trimmed
 
+    if (isOpusModelId(modelID)) return undefined
+
     // Rewrite legacy `anthropic/claude-*` to the subscription equivalent.
     if (providerID === "anthropic" && modelID.startsWith("claude-")) {
       return `${CLAUDE_SUBSCRIPTION_PREFIX}${normalizeModelID(modelID)}`
@@ -40,6 +45,8 @@ function mapClaudeModelString(model: string | undefined): string | undefined {
   }
 
   const normalized = normalizeModelID(trimmed)
+
+  if (isOpusModelId(normalized)) return undefined
 
   if (normalized.startsWith("claude-")) {
     return `${CLAUDE_SUBSCRIPTION_PREFIX}${normalized}`

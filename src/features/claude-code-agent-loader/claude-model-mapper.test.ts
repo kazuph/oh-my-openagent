@@ -23,8 +23,8 @@ describe("mapClaudeModelToOpenCode", () => {
       expect(mapClaudeModelToOpenCode("sonnet")).toEqual({ providerID: "github-copilot", modelID: "claude-sonnet-4-6" })
     })
 
-    it("#when called with opus #then maps to github-copilot claude-opus-4-6 object", () => {
-      expect(mapClaudeModelToOpenCode("opus")).toEqual({ providerID: "github-copilot", modelID: "claude-opus-4-6" })
+    it("#when called with opus #then does not map to a forced model", () => {
+      expect(mapClaudeModelToOpenCode("opus")).toBeUndefined()
     })
 
     it("#when called with haiku #then maps to github-copilot claude-haiku-4-5 object", () => {
@@ -47,8 +47,8 @@ describe("mapClaudeModelToOpenCode", () => {
       expect(mapClaudeModelToOpenCode("claude-sonnet-4-5-20250514")).toEqual({ providerID: "github-copilot", modelID: "claude-sonnet-4-5-20250514" })
     })
 
-    it("#when called with claude-opus-4-6 #then adds github-copilot object format", () => {
-      expect(mapClaudeModelToOpenCode("claude-opus-4-6")).toEqual({ providerID: "github-copilot", modelID: "claude-opus-4-6" })
+    it("#when called with claude-opus-4-6 #then does not force a model", () => {
+      expect(mapClaudeModelToOpenCode("claude-opus-4-6")).toBeUndefined()
     })
 
     it("#when called with claude-haiku-4-5-20251001 #then adds github-copilot object format", () => {

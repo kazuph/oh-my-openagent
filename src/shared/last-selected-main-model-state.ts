@@ -49,7 +49,14 @@ export function loadLastSelectedMainModel(): SessionModel | null {
   }
 }
 
+function isOpusModel(model: SessionModel): boolean {
+  return model.modelID.toLowerCase().includes("opus")
+}
+
 export function saveLastSelectedMainModel(model: SessionModel): void {
+  if (isOpusModel(model)) {
+    return
+  }
   const filePath = getLastSelectedMainModelStatePath()
 
   try {

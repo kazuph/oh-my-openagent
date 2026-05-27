@@ -81,43 +81,43 @@ describe("sisyphus-task", () => {
   })
 
   describe("DEFAULT_CATEGORIES", () => {
-    test("visual-engineering category has model and variant config", () => {
+    test("visual-engineering category has variant only without builtin model", () => {
       // given
       const category = DEFAULT_CATEGORIES["visual-engineering"]
 
       // when / #then
       expect(category).toBeDefined()
-      expect(category.model).toBe("github-copilot/gemini-3.1-pro")
+      expect(category.model).toBeUndefined()
       expect(category.variant).toBe("high")
     })
 
-    test("ultrabrain category has model and variant config", () => {
+    test("ultrabrain category has variant only without builtin model", () => {
       // given
       const category = DEFAULT_CATEGORIES["ultrabrain"]
 
       // when / #then
       expect(category).toBeDefined()
-      expect(category.model).toBe("opencode/gpt-5.4")
+      expect(category.model).toBeUndefined()
       expect(category.variant).toBe("xhigh")
     })
 
-    test("deep category has model and variant config", () => {
+    test("deep category has variant only without builtin model", () => {
       // given
       const category = DEFAULT_CATEGORIES["deep"]
 
       // when / #then
       expect(category).toBeDefined()
-      expect(category.model).toBe("opencode/gpt-5.4")
+      expect(category.model).toBeUndefined()
       expect(category.variant).toBe("medium")
     })
 
-    test("unspecified-high category uses claude-opus-4-6 max as primary", () => {
+    test("unspecified-high category has variant only without builtin model", () => {
       // given
       const category = DEFAULT_CATEGORIES["unspecified-high"]
 
       // when / #then
       expect(category).toBeDefined()
-      expect(category.model).toBe("github-copilot/claude-opus-4-6")
+      expect(category.model).toBeUndefined()
       expect(category.variant).toBe("max")
     })
   })
@@ -825,7 +825,7 @@ describe("sisyphus-task", () => {
       expect(result!.config.model).toBe("github-copilot/claude-opus-4-6")
     })
 
-    test("returns default model from DEFAULT_CATEGORIES for builtin category", () => {
+    test("returns variant from DEFAULT_CATEGORIES without builtin model", () => {
       // given
       const categoryName = "visual-engineering"
 
@@ -834,7 +834,8 @@ describe("sisyphus-task", () => {
 
       // then
       expect(result).not.toBeNull()
-      expect(result!.config.model).toBe("github-copilot/gemini-3.1-pro")
+      expect(result!.config.model).toBeUndefined()
+      expect(result!.config.variant).toBe("high")
       expect(result!.promptAppend).toContain("VISUAL/UI")
     })
 
@@ -1079,7 +1080,7 @@ describe("sisyphus-task", () => {
         abort: new AbortController().signal,
       }
 
-      // when - unspecified-high uses claude-opus-4-6 max in DEFAULT_CATEGORIES
+      // when - unspecified-high uses opencode config default model with max variant
       await tool.execute(
         {
           description: "Test unspecified-high default variant",
@@ -1091,10 +1092,10 @@ describe("sisyphus-task", () => {
         toolContext
       )
 
-      // then - claude-opus-4-6 should be passed with max variant
+      // then - system default model should be passed with max variant
       expect(launchInput.model).toEqual({
         providerID: "github-copilot",
-        modelID: "claude-opus-4-6",
+        modelID: "claude-sonnet-4-6",
         variant: "max",
       })
     }, { timeout: 20000 })
@@ -1140,7 +1141,7 @@ describe("sisyphus-task", () => {
         abort: new AbortController().signal,
       }
 
-      // when - unspecified-high uses claude-opus-4-6 max in DEFAULT_CATEGORIES
+      // when - unspecified-high uses opencode config default model with max variant
       await tool.execute(
         {
           description: "Test unspecified-high sync variant",
@@ -1152,10 +1153,10 @@ describe("sisyphus-task", () => {
         toolContext
       )
 
-      // then - claude-opus-4-6 should be passed with max variant
+      // then - system default model should be passed with max variant
       expect(promptBody.model).toEqual({
         providerID: "github-copilot",
-        modelID: "claude-opus-4-6",
+        modelID: "claude-sonnet-4-6",
       })
       expect(promptBody.variant).toBe("max")
     }, { timeout: 20000 })

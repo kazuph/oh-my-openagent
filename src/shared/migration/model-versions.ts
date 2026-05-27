@@ -9,9 +9,9 @@
  */
 export const MODEL_VERSION_MAP: Record<string, string> = {
   // Legacy Anthropic-direct → GitHub Copilot subscription
-  "anthropic/claude-opus-4-5": "github-copilot/claude-opus-4-6",
+  "anthropic/claude-opus-4-5": "github-copilot/claude-sonnet-4-6",
   "anthropic/claude-sonnet-4-5": "github-copilot/claude-sonnet-4-6",
-  "anthropic/claude-opus-4-6": "github-copilot/claude-opus-4-6",
+  "anthropic/claude-opus-4-6": "github-copilot/claude-sonnet-4-6",
   "anthropic/claude-sonnet-4-6": "github-copilot/claude-sonnet-4-6",
   "anthropic/claude-haiku-4-5": "github-copilot/claude-haiku-4-5",
   // Legacy OpenAI-direct → OpenCode Zen subscription (keeps codex family available via opencode)

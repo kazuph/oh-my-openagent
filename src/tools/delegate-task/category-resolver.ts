@@ -211,9 +211,23 @@ Available categories: ${allCategoryNames}`,
     const parsedModel = parseModelString(actualModel)
     categoryModel = parsedModel ?? undefined
   }
+
+  if (!categoryModel && inheritedModel) {
+    const parsedInherited = parseModelString(inheritedModel)
+    if (parsedInherited) {
+      const variantToUse = userCategories?.[args.category!]?.variant ?? resolved.config.variant
+      categoryModel = applyCategoryParams(
+        variantToUse ? { ...parsedInherited, variant: variantToUse } : parsedInherited,
+        resolved.config,
+      )
+      actualModel = inheritedModel
+      modelInfo = { model: inheritedModel, type: "inherited", source: "override" }
+    }
+  }
+
   const categoryPromptAppend = resolved.promptAppend || undefined
 
-  if (!categoryModel && !actualModel && !isModelResolutionSkipped) {
+  if (!categoryModel && !actualModel && !isModelResolutionSkipped && requirement?.requiresModel) {
     const categoryNames = Object.keys(enabledCategories)
     return {
       agentToUse: "",

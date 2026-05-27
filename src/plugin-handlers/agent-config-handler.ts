@@ -32,7 +32,6 @@ import {
 import { buildPrometheusAgentConfig } from "./prometheus-agent-config-builder";
 import { buildPlanDemoteConfig } from "./plan-model-inheritance";
 import { inferEffectiveModel } from "./infer-effective-model";
-import { loadLastSelectedMainModel } from "../shared/last-selected-main-model-state";
 
 type AgentConfigRecord = Record<string, Record<string, unknown> | undefined> & {
   build?: Record<string, unknown>;
@@ -50,11 +49,6 @@ function resolveStartupModel(config: Record<string, unknown>): string | undefine
   const configuredModel = config.model
   if (typeof configuredModel === "string" && configuredModel.trim().length > 0) {
     return configuredModel.trim()
-  }
-
-  const lastSelectedModel = loadLastSelectedMainModel()
-  if (lastSelectedModel) {
-    return `${lastSelectedModel.providerID}/${lastSelectedModel.modelID}`
   }
 
   return inferEffectiveModel(config)

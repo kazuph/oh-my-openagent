@@ -16,7 +16,7 @@ This is NOT a default choice - it's for genuinely unclassifiable moderate-effort
 </Category_Context>
 
 <Caller_Warning>
-THIS CATEGORY USES A MID-TIER MODEL (claude-sonnet-4-6).
+THIS CATEGORY USES THE PARENT SESSION MODEL (no plugin override).
 
 **PROVIDE CLEAR STRUCTURE:**
 1. MUST DO: Enumerate required actions explicitly
@@ -42,13 +42,13 @@ If task is unclassifiable but moderate-effort, use unspecified-low instead.
 export const ANTHROPIC_CATEGORIES: BuiltinCategoryDefinition[] = [
   {
     name: "unspecified-low",
-    config: { model: "github-copilot/claude-sonnet-4-6" },
+    config: {},
     description: "Tasks that don't fit other categories, low effort required",
     promptAppend: `${UNSPECIFIED_LOW_CATEGORY_PROMPT_APPEND}\n\n${CLI_ESCALATION_PROMPT_APPEND}`,
   },
   {
     name: "unspecified-high",
-    config: { model: "github-copilot/claude-opus-4-6", variant: "max" },
+    config: { variant: "max" },
     description: "Tasks that don't fit other categories, high effort required",
     promptAppend: `${UNSPECIFIED_HIGH_CATEGORY_PROMPT_APPEND}\n\n${CLI_ESCALATION_PROMPT_APPEND}`,
   },
